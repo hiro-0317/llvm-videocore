@@ -31,7 +31,7 @@ class VideoCore4AsmBackend : public MCAsmBackend {
 
 public:
   VideoCore4AsmBackend(const Target &T, Triple::OSType _OSType)
-    : MCAsmBackend(support::little), OSType(_OSType) {}
+    : MCAsmBackend(llvm::endianness::little), OSType(_OSType) {}
 
   std::unique_ptr<llvm::MCObjectTargetWriter> createObjectTargetWriter() const override;
 
@@ -58,9 +58,10 @@ public:
     return false;
   }
 
-  bool shouldForceRelocation(const MCAssembler &Asm,
-                             const MCFixup     &Fixup,
-                             const MCValue     &Target) override;
+  bool shouldForceRelocation(const MCAssembler     &Asm,
+			     const MCFixup         &Fixup,
+                             const MCValue         &Target,
+                             const MCSubtargetInfo *STI) override;
 
   /// fixupNeedsRelaxation - Target specific predicate for whether a given
   /// fixup requires the associated instruction to be relaxed.

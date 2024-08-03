@@ -42,7 +42,7 @@ namespace {
   class VideoCore4DAGToDAGISel : public SelectionDAGISel {
 
   public:
-    VideoCore4DAGToDAGISel(VideoCore4TargetMachine &TM, CodeGenOpt::Level OptLevel)
+    VideoCore4DAGToDAGISel(VideoCore4TargetMachine &TM, CodeGenOptLevel OptLevel)
       : SelectionDAGISel(TM, OptLevel) {}
     
     virtual StringRef getPassName() const override {
@@ -86,7 +86,7 @@ namespace {
 ///
 FunctionPass*
 llvm::createVideoCore4ISelDag(VideoCore4TargetMachine &TM,
-			      CodeGenOpt::Level        OptLevel) {
+			      CodeGenOptLevel          OptLevel) {
   return new VideoCore4DAGToDAGISel(TM,
 				    OptLevel);
 }

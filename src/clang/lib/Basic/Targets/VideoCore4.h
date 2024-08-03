@@ -102,7 +102,7 @@ public:
       "r16",  "r17",  "r18",  "r19",  "r20",  "r21",  "r22",  "r23",
       "r24",  "r25",  "r26",  "r27",  "r28",  "r29",  "r30",  "r31",
     };
-    return llvm::makeArrayRef(GCCRegNames);
+    return llvm::ArrayRef(GCCRegNames);
   }
 
   // FIX ME (konda)
@@ -119,7 +119,7 @@ public:
     return std::string(1, *Constraint);
   }
 
-  const char *getClobbers() const override {
+  std::string_view getClobbers() const override {
     return "";
   }
 
@@ -131,7 +131,9 @@ public:
   }
 
   ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override {
-    return None;
+    // FIXME
+    static const TargetInfo::GCCRegAlias GCCRegAliases[] = { {} };
+    return llvm::ArrayRef(GCCRegAliases);
   }
 };
 } // namespace targets

@@ -747,13 +747,12 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     case llvm::Triple::Linux:
         return std::make_unique<LinuxTargetInfo<LoongArch64TargetInfo>>(Triple,
                                                                         Opts);
-  case llvm::Triple::videocore:
-    return std::make_unique<LinuxTargetInfo<VideoCore4TargetInfo>>(Triple,
-								   Opts);
-
     default:
         return std::make_unique<LoongArch64TargetInfo>(Triple, Opts);
     }
+  case llvm::Triple::videocore:
+    return std::make_unique<LinuxTargetInfo<VideoCore4TargetInfo>>(Triple,
+								   Opts); 
   }
 }
 } // namespace targets

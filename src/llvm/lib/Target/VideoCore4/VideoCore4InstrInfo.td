@@ -291,17 +291,17 @@ class VC4_SWI_G<string         instr_asm,
 }
 class VC4_BRANCH_IND<string         instr_asm,
                      InstrItinClass itin = IIAlu> :
-      S16_R<(outs), (ins GR32:$dst),
-	     !strconcat(instr_asm, "\t$dst"),
-	     [(brind GR32:$dst)], itin>
+      S16_R<(outs), (ins GR32:$rd),
+	     !strconcat(instr_asm, "\t$rd"),
+	     [(brind GR32:$rd)], itin>
 {
   let Inst{15-5}         = 0b00000000010;
   let isReMaterializable = 1;
 }
 class VC4_BRANCH_LINK<string         instr_asm,
                       InstrItinClass itin = IIAlu> :
-      S16_R<(outs), (ins GR32:$lr, variable_ops),
-	     !strconcat(instr_asm, "\t$lr"),
+      S16_R<(outs), (ins GR32:$rd, variable_ops),
+	     !strconcat(instr_asm, "\t$rd"),
 	     [], itin>
 {
   let Inst{15-5}         = 0b00000000011;

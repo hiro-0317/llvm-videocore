@@ -59,15 +59,17 @@ public:
 		      bool                        isKill,
 		      int                         FrameIndex,
 		      const TargetRegisterClass  *RC,
-		      const TargetRegisterInfo   *TRI) const override;
+		      const TargetRegisterInfo   *TRI,
+		      Register                    VReg) const override;
 
-  virtual void
-  loadRegFromStackSlot(MachineBasicBlock          &MBB,
-		       MachineBasicBlock::iterator MBBI,
-		       Register                    DestReg,
-		       int                         FrameIndex,
-		       const TargetRegisterClass  *RC,
-		       const TargetRegisterInfo   *TRI) const override;
+  virtual
+  void loadRegFromStackSlot(MachineBasicBlock          &MBB,
+                            MachineBasicBlock::iterator MBBI,
+			    Register                    DestReg,
+                            int                         FrameIndex,
+			    const TargetRegisterClass  *RC,
+                            const TargetRegisterInfo   *TRI,
+                            Register                    VReg) const override;
 
   virtual bool
   analyzeBranch(MachineBasicBlock               &MBB,

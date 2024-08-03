@@ -21,6 +21,7 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/MCSymbolELF.h"
 #include "llvm/MC/MCELFStreamer.h"
+#include "llvm/MC/MCAssembler.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/BinaryFormat/ELF.h"
 #include "llvm/Support/ErrorHandling.h"

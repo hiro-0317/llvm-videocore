@@ -17,6 +17,7 @@
 
 #include "MCTargetDesc/VideoCore4MCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/PassRegistry.h"
 
 namespace llvm {
   class VideoCore4TargetMachine;
@@ -27,7 +28,7 @@ namespace llvm {
   
   FunctionPass*
   createVideoCore4ISelDag(VideoCore4TargetMachine &TM,
-			  CodeGenOpt::Level        OptLevel);
+			  CodeGenOptLevel          OptLevel);
   FunctionPass *createVideoCore4BoolRetToIntPass(void);
   FunctionPass *createVideoCore4AllocaHoistingPass(void);
   FunctionPass *createVideoCore4PseudoFixupPass(void);

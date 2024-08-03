@@ -66,7 +66,8 @@ VideoCore4InstrInfo::storeRegToStackSlot(MachineBasicBlock          &MBB,
 					 bool                        isKill,
 					 int                         FI,
 					 const TargetRegisterClass  *RC,
-					 const TargetRegisterInfo   *TRI) const {
+					 const TargetRegisterInfo   *TRI,
+					 Register                    VReg) const {
   
   DebugLoc DL;
   if (I != MBB.end())
@@ -93,7 +94,8 @@ VideoCore4InstrInfo::loadRegFromStackSlot(MachineBasicBlock          &MBB,
 					  Register                    DestReg,
 					  int                         FI,
 					  const TargetRegisterClass  *RC,
-					  const TargetRegisterInfo   *TRI) const {
+					  const TargetRegisterInfo   *TRI,
+					  Register                    VReg) const {
   
   DebugLoc DL;
   if (I != MBB.end())

@@ -102,10 +102,10 @@ public:
     return &InstrItins;
   }
 
-  CodeGenOpt::Level
+  CodeGenOptLevel
   getOptLevelToEnablePostRAScheduler() const override {
-    return CodeGenOpt::Aggressive;
-    //return CodeGenOpt::Default;
+    return CodeGenOptLevel::Aggressive;
+    //return CodeGenOptLevel::Default;
   }
 
   bool

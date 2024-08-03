@@ -35,22 +35,22 @@ class VideoCore4TargetMachine : public LLVMTargetMachine {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
 
 public:
-  VideoCore4TargetMachine(const Target              &T,
-			  const Triple              &TT,
-			  StringRef                  CPU,
-			  StringRef                  FS,
-			  const TargetOptions       &Options,
-			  Optional<Reloc::Model>     RM,
-			  Optional<CodeModel::Model> CM,
-			  CodeGenOpt::Level          OL,
-			  bool                       JIT);
+  VideoCore4TargetMachine(const Target                   &T,
+			  const Triple                   &TT,
+			  StringRef                       CPU,
+			  StringRef                       FS,
+			  const TargetOptions            &Options,
+			  std::optional<Reloc::Model>     RM,
+			  std::optional<CodeModel::Model> CM,
+			  CodeGenOptLevel                 OL,
+			  bool                            JIT);
 
   TargetLoweringObjectFile *getObjFileLowering() const override {
     return TLOF.get();
   }
 
   
-  TargetTransformInfo getTargetTransformInfo(const Function &F) override;
+  TargetTransformInfo getTargetTransformInfo(const Function &F) const override;
 
   const DataLayout          *getDataLayout() const { return &DL; }
   const VideoCore4Subtarget *getSubtargetImpl() const { return &Subtarget; }

@@ -62,7 +62,7 @@ VideoCore4RegisterInfo::getPointerRegClass(const MachineFunction &MF,
   return &VideoCore4::GR32RegClass;
 }
 
-void
+bool
 VideoCore4RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 					    int                         SPAdj,
 					    unsigned                    FIOperandNum,
@@ -81,6 +81,11 @@ VideoCore4RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 					       false,
 					       true);
   MI.getOperand(FIOperandNum + 1).ChangeToImmediate(offset);
+
+  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  if (MF.getTarget().Options.DisableFramePointerElim(MF) && MFI.adjustsStack())
+    return true;
+  return MFI.hasVarSizedObjects() || MFI.isFrameAddressTaken();
 }
 
 Register

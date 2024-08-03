@@ -33,8 +33,9 @@ namespace {
 			  const MCValue &Target,
 			  const MCFixup &Fixup,
 			  bool           IsPCRel) const override;
-    bool needsRelocateWithSymbol(const MCSymbol &Sym,
-                                 unsigned        Type) const override;
+    bool needsRelocateWithSymbol(const MCValue  &Val,
+				 const MCSymbol &Sym,
+				 unsigned        Type) const override;
   };
 }
 
@@ -67,7 +68,8 @@ VideoCore4ELFObjectWriter::getRelocType(MCContext     &Ctx,
 }
 
 bool
-VideoCore4ELFObjectWriter::needsRelocateWithSymbol(const MCSymbol &Sym,
+VideoCore4ELFObjectWriter::needsRelocateWithSymbol(const MCValue  &Val,
+						   const MCSymbol &Sym,
 						   unsigned        Type) const {
   // FIXME: This is extremelly conservative. This really needs to use a
   // whitelist with a clear explanation for why each realocation needs to

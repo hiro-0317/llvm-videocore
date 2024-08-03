@@ -48,8 +48,8 @@ extern "C" void LLVMInitializeVideoCore4Target() {
 }
 
 static Reloc::Model
-getEffectiveRelocModel(bool                   isJIT,
-                       Optional<Reloc::Model> RM) {
+getEffectiveRelocModel(bool                        isJIT,
+                       std::optional<Reloc::Model> RM) {
   if (!RM.hasValue() || isJIT) {
     return Reloc::Static;
   }
@@ -57,7 +57,7 @@ getEffectiveRelocModel(bool                   isJIT,
 }
 
 static CodeModel::Model
-getVideoCore4EffectiveCodeModel(Optional<CodeModel::Model> CM) {
+getVideoCore4EffectiveCodeModel(std::optional<CodeModel::Model> CM) {
   if (CM) {
     return *CM;
   }
@@ -84,15 +84,15 @@ computeDataLayout(const Triple        &TT,
   return Ret;
 }
 
-VideoCore4TargetMachine::VideoCore4TargetMachine(const Target              &T,
-						 const Triple              &TT,
-						 StringRef                  CPU,
-						 StringRef                  FS,
-						 const TargetOptions       &Options,
-						 Optional<Reloc::Model>     RM,
-						 Optional<CodeModel::Model> CM,
-						 CodeGenOpt::Level          OL,
-						 bool                       JIT)
+VideoCore4TargetMachine::VideoCore4TargetMachine(const Target                   &T,
+						 const Triple                   &TT,
+						 StringRef                       CPU,
+						 StringRef                       FS,
+						 const TargetOptions            &Options,
+						 std::optional<Reloc::Model>     RM,
+						 std::optional<CodeModel::Model> CM,
+						 CodeGenOptLevel                 OL,
+						 bool                            JIT)
   : LLVMTargetMachine(T, computeDataLayout(TT,
 					   CPU,
 					   Options,
@@ -223,9 +223,11 @@ void
 VideoCore4PassConfig::addPreEmitPass() {
   addPass(createVideoCore4CFGOptPass());
 
+#if 0
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
+#endif
 
   addPass(createVideoCore4DelaySlotFillerPass());
   return;

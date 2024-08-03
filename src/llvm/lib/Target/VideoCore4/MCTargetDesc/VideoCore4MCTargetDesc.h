@@ -31,7 +31,6 @@ namespace llvm {
   extern Target TheVideoCore4Target;
 
   MCCodeEmitter *createVideoCore4MCCodeEmitter(const MCInstrInfo    &MCII,
-					       const MCRegisterInfo &MRI,
 					       MCContext            &Ctx);
 
   MCAsmBackend *createVideoCore4AsmBackend(const Target          &T,

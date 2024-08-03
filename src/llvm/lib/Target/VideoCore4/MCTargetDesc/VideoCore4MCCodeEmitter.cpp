@@ -17,6 +17,7 @@
 #include "VideoCore4FixupKinds.h"
 
 #include "llvm/ADT/APFloat.h"
+#include "llvm/BinaryFormat/ELF.h"
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCExpr.h"
@@ -25,9 +26,10 @@
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/Endian.h"
 #include "llvm/Support/EndianStream.h"
-
+#include "llvm/Support/raw_ostream.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -40,57 +42,16 @@
 
 namespace llvm {
   MCCodeEmitter *createVideoCore4MCCodeEmitter(const MCInstrInfo    &MCII,
-					       const MCRegisterInfo &MRI,
 					       MCContext            &Ctx) {
     return new VideoCore4MCCodeEmitter(MCII, Ctx, false);
   }
 } // End of namespace llvm
 
-void
-VideoCore4MCCodeEmitter::EmitByte(unsigned char C,
-				  raw_ostream  &OS) const {
-  OS << (char)C;
-}
-
-void
-VideoCore4MCCodeEmitter::EmitInstruction(APInt        Val,
-					 unsigned     Size,
-					 raw_ostream &OS) const {
-  switch (Size) {
-  default:
-    break;
-    //report_fatal_error("invalid instruction length");
-  case 2: {
-    for (unsigned i = 0; i < Size; ++i) {
-      unsigned Shift = i * 8;
-      APInt    tmp   = Val;
-      tmp.lshrInPlace(Shift);
-      tmp &= 0xff;
-      EmitByte(std::stol(toString(tmp, 10, true)), OS);
-    }
-    break;
-  }
-  case 4: {
-    APInt tmp = Val;
-    tmp.lshrInPlace(16);
-    EmitInstruction(Val, 2, OS);
-    EmitInstruction(tmp, 2, OS);
-    break;
-  }
-  case 6: {
-    break;
-  }
-  case 10: {
-    break;
-  }
-  }
-}
-
 /// encodeInstruction - Emit the instruction.
 /// Size the instruction
 void
 VideoCore4MCCodeEmitter::encodeInstruction(const MCInst             &MI,
-					   raw_ostream              &OS,
+					   SmallVectorImpl<char>    &CB,
 					   SmallVectorImpl<MCFixup> &Fixups,
 					   const MCSubtargetInfo    &STI) const {
   const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
@@ -107,22 +68,17 @@ VideoCore4MCCodeEmitter::encodeInstruction(const MCInst             &MI,
 			Binary,
 			Scratch,
 			STI);
-
   // this switch statement is redundant. but may be useful later
   switch (Size) {
   default:
     break;
     //report_fatal_error("invalid instruction length");
   case 2: {
-    EmitInstruction(Binary,
-		    Size,
-		    OS);
+    support::endian::write<uint16_t>(CB, *Binary.getRawData(), llvm::endianness::little);
     break;
   }
   case 4: {
-    EmitInstruction(Binary,
-		    Size,
-		    OS);
+    support::endian::write<uint32_t>(CB, *Binary.getRawData(), llvm::endianness::little);
     break;
   }
   case 6: {

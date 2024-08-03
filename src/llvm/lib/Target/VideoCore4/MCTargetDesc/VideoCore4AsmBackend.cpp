@@ -119,9 +119,11 @@ llvm::createVideoCore4AsmBackend(const Target          &T,
 // If linker relaxation is enabled, or the relax option had previously been
 // enabled, always emit relocations even if the fixup can be resolved. This is
 // necessary for correctness as offsets may change during relaxation.
-bool VideoCore4AsmBackend::shouldForceRelocation(const MCAssembler &Asm,
-						 const MCFixup     &Fixup,
-						 const MCValue     &Target) {
+bool
+VideoCore4AsmBackend::shouldForceRelocation(const MCAssembler     &Asm,
+					    const MCFixup         &Fixup,
+					    const MCValue         &Target,
+					    const MCSubtargetInfo *STI) {
   if (Fixup.getKind() >= FirstLiteralRelocationKind)
     return true;
   switch (Fixup.getTargetKind()) {

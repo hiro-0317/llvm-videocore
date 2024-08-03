@@ -34,7 +34,7 @@ public:
   const TargetRegisterClass* getPointerRegClass(const MachineFunction &MF,
 						unsigned               Kind = 0) const override;
 
-  void eliminateFrameIndex(MachineBasicBlock::iterator II,
+  bool eliminateFrameIndex(MachineBasicBlock::iterator II,
                            int                         SPAdj,
 			   unsigned                    FIOperandNum,
 			   RegScavenger               *RS = NULL) const override;
