@@ -102,7 +102,8 @@ public:
     renderscript32, // 32-bit RenderScript
     renderscript64, // 64-bit RenderScript
     ve,             // NEC SX-Aurora Vector Engine
-    LastArchType = ve
+    videocore,
+    LastArchType = videocore
   };
   enum SubArchType {
     NoSubArch,
@@ -165,7 +166,8 @@ public:
     Mesa,
     SUSE,
     OpenEmbedded,
-    LastVendorType = OpenEmbedded
+    Broadcom,
+    LastVendorType = Broadcom
   };
   enum OSType {
     UnknownOS,

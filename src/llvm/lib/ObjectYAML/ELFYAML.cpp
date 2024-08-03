@@ -344,6 +344,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_BPF);
   ECase(EM_VE);
   ECase(EM_CSKY);
+  ECase(EM_VIDEOCORE);
 #undef ECase
   IO.enumFallback<Hex16>(Value);
 }
@@ -599,6 +600,9 @@ void ScalarBitSetTraits<ELFYAML::ELF_EF>::bitset(IO &IO,
       break;
     }
     break;
+  case ELF::EM_VIDEOCORE:
+    BCaseMask(EF_VIDEOCORE_ISA_V4, EF_VIDEOCORE_ISA);
+    break;
   default:
     break;
   }
@@ -848,6 +852,11 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
   case ELF::EM_68K:
 #include "llvm/BinaryFormat/ELFRelocs/M68k.def"
     break;
+    /* FIX ME (konda) 
+  case ELF::EM_VIDEOCORE:
+#include "llvm/BinaryFormat/ELFRelocs/VideoCore4.def"
+    break;
+    */
   default:
     // Nothing to do.
     break;

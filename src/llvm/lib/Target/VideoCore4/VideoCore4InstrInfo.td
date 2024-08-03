@@ -1,0 +1,1704 @@
+//===-- VideoCore4InstrInfo.td - VideoCore4 Instruction defs ---*- tablegen -*-===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file describes the VideoCore4 instructions in TableGen format.
+//
+//===----------------------------------------------------------------------===//
+
+include "VideoCore4InstrFormats.td"
+
+def SDT_VideoCore4JmpLink : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
+def VideoCore4JmpLink     : SDNode<"VideoCore4ISD::JmpLink",SDT_VideoCore4JmpLink,
+                                    [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
+                                    SDNPVariadic]>;
+
+// ToDo
+def VideoCoreBR_JT : SDNode<"VideoCore4ISD::BR_JT",
+                             SDTypeProfile<0, 2, [SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+                             [SDNPHasChain]>;
+
+def bitcast_fpimm_to_i32 : SDNodeXForm<fpimm, [{
+  return CurDAG->getTargetConstant(N->getValueAPF().bitcastToAPInt().getZExtValue(), SDLoc(N), MVT::i32);
+}]>;
+
+def retflag : SDNode<"VideoCore4ISD::RET_FLAG", SDTNone,
+                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+def callseq_start : SDNode<"ISD::CALLSEQ_START",
+			    SDCallSeqStart<[SDTCisVT<0, i32>]>,
+			    [SDNPHasChain, SDNPOutGlue]>;
+def callseq_end : SDNode<"ISD::CALLSEQ_END",
+		   	  SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>,
+			  [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
+def call : SDNode<"VideoCore4ISD::CALL",
+	           SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>,
+		   [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue, SDNPVariadic]>;
+
+def VCrsqrt : SDNode<"VideoCore4ISD::RSQRT", SDTFPUnaryOp, []>;
+def VCrcp   : SDNode<"VideoCore4ISD::RCP",   SDTFPUnaryOp, []>;
+
+
+//===----------------------------------------------------------------------===//
+// VideoCore4 Operand Definitions.
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
+// VideoCore4 Complex Pattern Definitions.
+//===----------------------------------------------------------------------===//
+
+// An address of something in memory.
+// def addr : ComplexPattern<iPTR, 1, "SelectAddr", [], []>;
+
+def GlobalWrapper : SDNode<"VideoCore4ISD::GLOBAL", SDTIntUnaryOp>;
+
+// An address of something on the stack.
+def stacked : Operand<i32>, ComplexPattern<i32, 2, "SelectStacked", [frameindex], []> {
+  let PrintMethod   = "printStacked";
+  let MIOperandInfo = (ops GR32, imm);
+}
+
+def addrRegImm : ComplexPattern<iPTR, 2, "SelectStacked", [frameindex]>;
+def InlineJT : Operand<i32> {
+//  let PrintMethod = "printInlineJT";
+}
+
+//===----------------------------------------------------------------------===//
+// Pattern Fragments
+//===----------------------------------------------------------------------===//
+def LO16 : SDNodeXForm<imm, [{
+  // Transformation function: return low 16 bits.
+  return getI16Imm(N->getZExtValue() & 0xFFFFULL);
+}]>;
+def HI16 : SDNodeXForm<imm, [{
+  // Transformation function: return bits 16-31.
+  return getI16Imm(N->getZExtValue() >> 16);
+}]>;
+def i32lo16 : PatLeaf<(i32 imm), [{
+  // i32lo16 predicate - true if the 32-bit immediate has only rightmost 16
+  // bits set.
+  return ((N->getZExtValue() & 0FFFFULL) == N->getZExtValue());
+}], LO16>;
+def i32hi16 : PatLeaf<(i32 imm), [{
+  // i32lo16 predicate - true if the 32-bit immediate has only leftmost 16
+  // bits set.
+  return ((N->getZExtValue() & 0xFFFF0000ULL) == N->getZExtValue());
+}], HI16>;
+def immSExt16 : PatLeaf<(i32 imm), [{
+  // immSExt16 predicate - true if the immediate fits in a 16-bit sign extended
+  // field.
+  uint64_t val = N->getZExtValue();
+  return ((int64_t)val == (int16_t)val);
+}]>;
+// true if the immediate fits in a 5-bit unsigned field.
+def immU5 : PatLeaf<(i32 imm), [{ return isUInt<5>(N->getZExtValue()); }]>;
+// true if the immediate fits in a 6-bit signed field.
+def immS6 : PatLeaf<(i32 imm), [{ return isInt<6>(N->getSExtValue()); }]>;
+// true if the immediate fits in a 6-bit unsigned field.
+def immU6 : PatLeaf<(i32 imm), [{ return isUInt<6>(N->getZExtValue()); }]>;
+// true if the immediate fits in a 12-bit unsigned field.
+def immU12 : PatLeaf<(i32 imm), [{ return isUInt<12>(N->getZExtValue()); }]>;
+// true if the immediate fits in a 16-bit unsigned field.
+def immU16 : PatLeaf<(i32 imm), [{ return isUInt<16>(N->getZExtValue()); }]>;
+
+def brtarget32 : Operand<OtherVT>;
+def brtarget23 : Operand<OtherVT>;
+def brtarget   : Operand<OtherVT>; // FIXME
+def calltarget : Operand<i32>;
+
+//===----------------------------------------------------------------------===//
+// Instruction list..
+//===----------------------------------------------------------------------===//
+
+class VC4_2_OP4_S16_G<bits<4>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S16_OP4<opcode, (outs GR32:$rd), (ins GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_2_OP4_S16_USE_G<bits<4>        opcode,
+                          string         instr_asm,
+                          InstrItinClass itin = IIAlu> :
+      S16_OP4<opcode, (outs), (ins GR32:$rd, GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP4_S16_G<bits<4>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin   = IIAlu,
+                      bit            isComm = 0> :
+      S16_OP4<opcode, (outs GR32:$rd), (ins GR32:$rb, GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $rb, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+  let isCommutable       = isComm;
+}
+class VC4_2_OP4_S16_USE_F<bits<4>        opcode,
+                          string         instr_asm,
+                          InstrItinClass itin = IIAlu> :
+      S16_OP4<opcode, (outs), (ins FR32:$rd, FR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_2_OP5_S16_G<bits<5>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S16_OP5<opcode, (outs GR32:$rd), (ins GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP5_S16_G<bits<5>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin   = IIAlu,
+                      bit            isComm = 0> :
+     S16_OP5<opcode, (outs GR32:$rd), (ins GR32:$rb, GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $rb, $ra"),
+              [], itin>
+{
+  let isCommutable       = isComm;
+  let isReMaterializable = 1;
+}
+class VC4_2_OP6_S16_G<bits<6>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S16_OP6<opcode, (outs GR32:$rd), (ins GR32:$ra),
+	      !strconcat(instr_asm, "\t$rd, $ra"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP11_S32_G<bits<11>       opcode,
+                       string         instr_asm,
+                       InstrItinClass itin   = IIAlu,
+                       bit            isComm = 0> :
+      S32_3_OP11<opcode, (outs GR32:$rd), (ins GR32:$c, GR32:$ra, GR32:$rb), // FIXME
+	         !strconcat(instr_asm, "\t$c, $rd, $ra, $rb"),
+                 [], itin>
+{
+  let isCommutable       = isComm;
+  let isReMaterializable = 1;
+}
+class VC4_NOP<string         instr_asm,
+              InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000001;
+}
+class VC4_BREAKPOINT<string         instr_asm,
+                     InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000000;
+}
+class VC4_SLEEP<string         instr_asm,
+                InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000010;
+}
+class VC4_USER<string         instr_asm,
+               InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000011;
+}
+class VC4_EI<string         instr_asm,
+             InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000100;
+}
+class VC4_DI<string         instr_asm,
+             InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000101;
+}
+class VC4_CBCLR<string         instr_asm,
+                InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000110;
+}
+class VC4_CBADD1<string         instr_asm,
+                 InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000000111;
+}
+class VC4_CBADD2<string         instr_asm,
+                 InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000001000;
+}
+class VC4_CBADD3<string         instr_asm,
+                 InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000001001;
+}
+class VC4_RTI<string         instr_asm,
+              InstrItinClass itin = IIAlu> :
+      S16<(outs), (ins),
+	   !strconcat(instr_asm, ""),
+           [], itin>
+{
+  let Inst{15-0} = 0b0000000000001010;
+}
+class VC4_SWI_G<string         instr_asm,
+                InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$rd),
+	     !strconcat(instr_asm, "\t$rd"),
+	     [], itin>
+{
+  let Inst{15-5}         = 0b00000000001;
+  let isReMaterializable = 1;
+}
+class VC4_BRANCH_IND<string         instr_asm,
+                     InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$dst),
+	     !strconcat(instr_asm, "\t$dst"),
+	     [(brind GR32:$dst)], itin>
+{
+  let Inst{15-5}         = 0b00000000010;
+  let isReMaterializable = 1;
+}
+class VC4_BRANCH_LINK<string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$lr, variable_ops),
+	     !strconcat(instr_asm, "\t$lr"),
+	     [], itin>
+{
+  let Inst{15-5}         = 0b00000000011;
+  let isReMaterializable = 1;
+}
+class VC4_SWITCH_B_G<string         instr_asm,
+                     InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$rd),
+	    !strconcat(instr_asm, "\t$rd"),
+	    [], itin>
+{
+  let Inst{15-5}         = 0b00000000010;
+  let isReMaterializable = 1;
+}
+class VC4_SWITCH_G<string         instr_asm,
+                   InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$rd),
+	    !strconcat(instr_asm, "\t$rd"),
+	    [], itin>
+{
+  let Inst{15-5}         = 0b00000000011;
+  let isReMaterializable = 1;
+}
+class VC4_VERSION_G<string         instr_asm,
+                    InstrItinClass itin = IIAlu> :
+      S16_R<(outs), (ins GR32:$rd),
+	    !strconcat(instr_asm, "\t$rd"),
+	    [], itin>
+{
+  let Inst{15-5}         = 0b00000000111;
+  let isReMaterializable = 1;
+}
+class VC4_SWI_U<string         instr_asm,
+                InstrItinClass itin = IIAlu> :
+      S16_U<(outs), (ins i32imm:$imm),
+	    !strconcat(instr_asm, "\t$imm"),
+	    [], itin>
+{
+  let Inst{15-6}         = 0b0000000111;
+  let isReMaterializable = 1;
+}
+class VC4_2_OP5_S16_IMM<bits<5>        opcode,
+                        string         instr_asm,
+                        InstrItinClass itin = IIAlu> :
+      S16_OP5_IMM<opcode,
+                  (outs GR32:$rd), (ins i32imm:$imm),
+	          !strconcat(instr_asm, "\t$rd, %sp, $imm"),
+                  [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_JMP32<bits<16>       opcode,
+                string         instr_asm,
+                InstrItinClass itin = IIAlu> :
+      S48<(outs), (ins brtarget32:$target), // ToDo: add encoding
+	   !strconcat(instr_asm, "\t$target"),
+           [], itin>
+{
+  let Inst{47-32}        = opcode;
+  let isReMaterializable = 1;
+}
+class VC4_BRANCH32<bits<16>       opcode,
+                   string         instr_asm,
+                   InstrItinClass itin = IIAlu> :
+      S48<(outs), (ins brtarget32:$target), // ToDo: add encoding
+	   !strconcat(instr_asm, "\t$target"),
+           [], itin>
+{
+  let Inst{47-32}        = opcode;
+  let isReMaterializable = 1;
+}
+class VC4_BRANCH23_CC<bits<4>        cc,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S32<(outs), (ins brtarget23:$target), // ToDo: add encoding
+	  !strconcat(instr_asm, "\t$target"),
+          [], itin>
+{
+  let Inst{31-28}        = 0b1001;
+  let Inst{27-24}        = cc;
+  let isReMaterializable = 1;
+}
+class VC4_BRANCHLINK23<string         instr_asm,
+                       InstrItinClass itin = IIAlu> :
+      S32<(outs), (ins brtarget23:$target), // ToDo: add encoding
+	   !strconcat(instr_asm, "\t$target"),
+           [], itin>
+{
+  let Inst{31-28}        = 0b1001;
+  let isReMaterializable = 1;
+}
+class VC4_3_OP6_S48_G<bits<6>        opcode,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S48_ARITH_IMM<opcode,
+                    (outs GR32:$rd), (ins GR32:$rs, i32imm:$imm),
+	            !strconcat(instr_asm, "\t$rd, $rs, $imm"),
+                    [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP5_S32_ACC_G<bits<5>        opcode,
+                          string         instr_asm,
+                          InstrItinClass itin = IIAlu> :
+      S32_ARITH_IMM_ACC<opcode,
+                        (outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
+	                !strconcat(instr_asm, "\t$rd, $ra, $imm"),
+                        [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP4_S32_G<bits<4>        opcode,
+                      bits<4>        cc,
+                      string         instr_asm,
+                      InstrItinClass itin = IIAlu> :
+      S32_FOP<opcode, cc,
+              (outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
+              !strconcat(instr_asm, "\t$rd, $ra, $rb"),
+              [], itin>
+{
+  let isReMaterializable = 1;
+}
+class VC4_3_OP4_S32_IMM_G<bits<4>        opcode,
+                          bits<4>        cc,
+                          string         instr_asm,
+                          InstrItinClass itin = IIAlu> :
+      S32_FOPI<opcode, cc,
+               (outs GR32:$rd), (ins GR32:$ra, i32imm:$b), // FIXME: to fpimm
+               !strconcat(instr_asm, "\t$rd, $ra, $b"),
+               [], itin>
+{
+  let isReMaterializable = 1;
+}
+ 
+
+
+
+
+
+
+
+
+
+
+let hasSideEffects = 0 in {
+  // 0op
+  def NOP : VC4_NOP <"nop", IIAlu>;
+}
+def BREAKPOINT : VC4_BREAKPOINT <"bkpt",     IIAlu>;
+def SLEEP      : VC4_SLEEP      <"sleep",    IIAlu>;
+def USER       : VC4_USER       <"user",     IIAlu>;
+def EI         : VC4_EI         <"ei",       IIAlu>;
+def DI         : VC4_DI         <"di",       IIAlu>;
+def CBCLR      : VC4_CBCLR      <"cbclr",    IIAlu>;
+def CBADD1     : VC4_CBADD1     <"cbadd1",   IIAlu>;
+def CBADD2     : VC4_CBADD2     <"cbadd2",   IIAlu>;
+def CBADD3     : VC4_CBADD3     <"cbadd3",   IIAlu>;
+def RTI        : VC4_RTI        <"rti",      IIAlu>;
+def SWI        : VC4_SWI_G      <"swi",      IIAlu>;
+def SWITCH_B   : VC4_SWITCH_B_G <"switch.b", IIAlu>;
+def SWITCH     : VC4_SWITCH_G   <"switch",   IIAlu>;
+def VERSION    : VC4_VERSION_G  <"version",  IIAlu>;
+def SWIU       : VC4_SWI_U      <"swi",      IIAlu>;
+
+// operand(4) 2op
+def MOV_G : VC4_2_OP4_S16_G <0b0000, "mov", IIAlu>;
+def NOT_G : VC4_2_OP4_S16_G <0b0100, "not", IIAlu>;
+
+let Defs = [SR] in {
+  def CMP_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
+  def CMP_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
+}
+
+// operand(4) 2op
+def BTEST_G : VC4_2_OP4_S16_G   <0b0110,   "btest", IIAlu>;
+// operand(5) 2op
+def NEG_G   : VC4_2_OP5_S16_G   <0b11001,  "neg",   IIAlu>;
+// operand(6) 2op
+def COUNT_G : VC4_2_OP6_S16_G   <0b110000, "count", IIAlu>;
+// operand(4) 2op
+def ADDSP_G : VC4_2_OP5_S16_IMM <0b00010,  "addsp", IIAlu>;
+
+let Constraints = "$rd = $rb" in {
+  // operand(4) 3op
+  def ADD_G       : VC4_3_OP4_S16_G <0b0001, "add",       IIAlu, 1>;
+  def MUL_G       : VC4_3_OP4_S16_G <0b0010, "mul",       IIAlu, 1>;
+  def SUB_G       : VC4_3_OP4_S16_G <0b0011, "sub",       IIAlu, 0>;
+  def BMASK_G     : VC4_3_OP4_S16_G <0b0111, "bmask",     IIAlu, 0>;
+  def BITSET_G    : VC4_3_OP4_S16_G <0b1000, "bitset",    IIAlu, 0>;
+  def BITCLEAR_G  : VC4_3_OP4_S16_G <0b1001, "bitclear",  IIAlu, 0>;
+  def BITFLIP_G   : VC4_3_OP4_S16_G <0b1010, "bitflip",   IIAlu, 0>;
+  def ADDSCALE3_G : VC4_3_OP4_S16_G <0b1011, "addscale3", IIAlu, 0>;
+  def SIGNEXT_G   : VC4_3_OP4_S16_G <0b1100, "signext",   IIAlu, 0>;
+  def LSR_G       : VC4_3_OP4_S16_G <0b1101, "lsr",       IIAlu, 0>;
+  def SHL_G       : VC4_3_OP4_S16_G <0b1110, "shl",       IIAlu, 0>;
+  def ASR_G       : VC4_3_OP4_S16_G <0b1111, "asr",       IIAlu, 0>;
+
+  // operand(5) 3op 
+  def CMN_G       : VC4_3_OP5_S16_G <0b00001, "cmn",       IIAlu, 0>;
+  def BIC_G       : VC4_3_OP5_S16_G <0b00011, "bic",       IIAlu, 0>;
+  def EOR_G       : VC4_3_OP5_S16_G <0b00101, "eor",       IIAlu, 1>;
+  def AND_G       : VC4_3_OP5_S16_G <0b00111, "and",       IIAlu, 1>;
+  def ROR_G       : VC4_3_OP5_S16_G <0b01001, "ror",       IIAlu, 0>;
+  def RSUB_G      : VC4_3_OP5_S16_G <0b01011, "rsub",      IIAlu, 0>;
+  def OR_G        : VC4_3_OP5_S16_G <0b01101, "or",        IIAlu, 1>;
+  def MAX_G       : VC4_3_OP5_S16_G <0b01111, "max",       IIAlu, 0>;
+  def MIN_G       : VC4_3_OP5_S16_G <0b10001, "min",       IIAlu, 0>;
+  def ADDSCALE1_G : VC4_3_OP5_S16_G <0b10011, "addscale1", IIAlu, 0>;
+  def ADDSCALE2_G : VC4_3_OP5_S16_G <0b10101, "addscale2", IIAlu, 0>;
+  def ADDSCALE4_G : VC4_3_OP5_S16_G <0b10111, "addscale4", IIAlu, 0>;
+  def MSB_G       : VC4_3_OP5_S16_G <0b11011, "msb",       IIAlu, 0>;
+  def BREV_G      : VC4_3_OP5_S16_G <0b11101, "brev",      IIAlu, 0>;
+  def ABS_G       : VC4_3_OP5_S16_G <0b11111, "abs",       IIAlu, 0>;
+}
+// operand(11) 3op
+def MULHD_SS_G : VC4_3_OP11_S32_G <0b11000100000, "mulhd.ss", IIAlu, 0>;
+def MULHD_SU_G : VC4_3_OP11_S32_G <0b11000100001, "mulhd.su", IIAlu, 0>;
+def MULHD_US_G : VC4_3_OP11_S32_G <0b11000100010, "mulhd.us", IIAlu, 0>;
+def MULHD_UU_G : VC4_3_OP11_S32_G <0b11000100011, "mulhd.uu", IIAlu, 0>;
+
+def DIV_SS_G : VC4_3_OP11_S32_G <0b11000100100, "div.ss", IIAlu, 0>;
+def DIV_SU_G : VC4_3_OP11_S32_G <0b11000100101, "div.su", IIAlu, 0>;
+def DIV_US_G : VC4_3_OP11_S32_G <0b11000100110, "div.us", IIAlu, 0>;
+def DIV_UU_G : VC4_3_OP11_S32_G <0b11000100111, "div.uu", IIAlu, 0>;
+
+let isBranch=1, isTerminator=1, isBarrier=1 in {
+  let isIndirectBranch=1, hasDelaySlot = 1 in {
+    def BR_IND_G  : VC4_BRANCH_IND  <"b",  IIBranch>;
+    def BR_LINK_G : VC4_BRANCH_LINK <"bl", IIBranch>;
+  }
+  let hasDelaySlot = 1 in {
+    def JMP32        : VC4_JMP32        <0b1110000000000000, "j",   IIBranch>;
+    def JMPLINK32    : VC4_JMP32        <0b1110001000000000, "jl",  IIBranch>;
+
+    def BRANCH23_EQ  : VC4_BRANCH23_CC  <0b0000,             "beq", IIBranch>; // branch eq
+    def BRANCH23_NE  : VC4_BRANCH23_CC  <0b0001,             "bne", IIBranch>; // branch ne
+    def BRANCH23_CS  : VC4_BRANCH23_CC  <0b0010,             "bcs", IIBranch>; // branch cs
+    def BRANCH23_CC  : VC4_BRANCH23_CC  <0b0011,             "bcc", IIBranch>; // branch cc
+    def BRANCH23_MI  : VC4_BRANCH23_CC  <0b0100,             "bmi", IIBranch>; // branch mi
+    def BRANCH23_PL  : VC4_BRANCH23_CC  <0b0101,             "bpl", IIBranch>; // branch pl
+    def BRANCH23_VS  : VC4_BRANCH23_CC  <0b0110,             "bvs", IIBranch>; // branch vs
+    def BRANCH23_VC  : VC4_BRANCH23_CC  <0b0111,             "bvc", IIBranch>; // branch vc
+    def BRANCH23_HI  : VC4_BRANCH23_CC  <0b1000,             "bhi", IIBranch>; // branch hi
+    def BRANCH23_LS  : VC4_BRANCH23_CC  <0b1001,             "bls", IIBranch>; // branch ls
+    def BRANCH23_GE  : VC4_BRANCH23_CC  <0b1010,             "bge", IIBranch>; // branch ge
+    def BRANCH23_LT  : VC4_BRANCH23_CC  <0b1011,             "blt", IIBranch>; // branch lt
+    def BRANCH23_GT  : VC4_BRANCH23_CC  <0b1100,             "bgt", IIBranch>; // branch gt
+    def BRANCH23_LE  : VC4_BRANCH23_CC  <0b1101,             "ble", IIBranch>; // branch le
+    def BRANCH23_A   : VC4_BRANCH23_CC  <0b1110,             "ba",  IIBranch>; // branch a
+    def BRANCH23_N   : VC4_BRANCH23_CC  <0b1111,             "bn",  IIBranch>; // branch n
+    def BRANCHLINK23 : VC4_BRANCHLINK23 <                    "bl",  IIBranch>; // branch link
+
+    def BRANCH32     : VC4_BRANCH32     <0b1110000100000000, "b",   IIBranch>;
+    def BRANCHLINK32 : VC4_BRANCH32     <0b1110001100000000, "bl",  IIBranch>;
+  }
+}
+
+let Constraints = "$rd = $ra" in {
+  def ADD16I : VC4_3_OP5_S32_ACC_G <0b00000, "add", IIAlu>; // FIXME
+}
+
+def ADD32I : VC4_3_OP6_S48_G <0b111011, "add", IIAlu>;
+
+
+
+def FADD_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fadd.eq",  IIFpu>; // FIXME
+def FADD_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fadd.ne",  IIFpu>; // FIXME
+def FADD_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fadd.cs",  IIFpu>; // FIXME
+def FADD_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fadd.cc",  IIFpu>; // FIXME
+def FADD_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fadd.mi",  IIFpu>; // FIXME
+def FADD_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fadd.pl",  IIFpu>; // FIXME
+def FADD_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fadd.vs",  IIFpu>; // FIXME
+def FADD_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fadd.vc",  IIFpu>; // FIXME
+def FADD_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fadd.ugt", IIFpu>; // FIXME
+def FADD_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fadd.ule", IIFpu>; // FIXME
+def FADD_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fadd.ge",  IIFpu>; // FIXME
+def FADD_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fadd.lt",  IIFpu>; // FIXME
+def FADD_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fadd.gt",  IIFpu>; // FIXME
+def FADD_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fadd.le",  IIFpu>; // FIXME
+def FADD_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fadd.a",   IIFpu>; // FIXME
+def FADD_N   : VC4_3_OP4_S32_G <0b0000, 0b1111, "fadd.n",   IIFpu>; // FIXME
+
+def FSUB_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fsub.eq",  IIFpu>; // FIXME
+def FSUB_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fsub.ne",  IIFpu>; // FIXME
+def FSUB_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fsub.cs",  IIFpu>; // FIXME
+def FSUB_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fsub.cc",  IIFpu>; // FIXME
+def FSUB_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fsub.mi",  IIFpu>; // FIXME
+def FSUB_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fsub.pl",  IIFpu>; // FIXME
+def FSUB_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fsub.vs",  IIFpu>; // FIXME
+def FSUB_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fsub.vc",  IIFpu>; // FIXME
+def FSUB_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fsub.ugt", IIFpu>; // FIXME
+def FSUB_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fsub.ule", IIFpu>; // FIXME
+def FSUB_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fsub.ge",  IIFpu>; // FIXME
+def FSUB_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fsub.lt",  IIFpu>; // FIXME
+def FSUB_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fsub.gt",  IIFpu>; // FIXME
+def FSUB_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fsub.le",  IIFpu>; // FIXME
+def FSUB_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fsub.a",   IIFpu>; // FIXME
+def FSUB_N   : VC4_3_OP4_S32_G <0b0000, 0b1111, "fsub.n",   IIFpu>; // FIXME
+
+def FMUL_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fmul.eq",  IIFpu>; // FIXME
+def FMUL_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fmul.ne",  IIFpu>; // FIXME
+def FMUL_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fmul.cs",  IIFpu>; // FIXME
+def FMUL_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fmul.cc",  IIFpu>; // FIXME
+def FMUL_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fmul.mi",  IIFpu>; // FIXME
+def FMUL_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fmul.pl",  IIFpu>; // FIXME
+def FMUL_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fmul.vs",  IIFpu>; // FIXME
+def FMUL_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fmul.vc",  IIFpu>; // FIXME
+def FMUL_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fmul.ugt", IIFpu>; // FIXME
+def FMUL_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fmul.ule", IIFpu>; // FIXME
+def FMUL_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fmul.ge",  IIFpu>; // FIXME
+def FMUL_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fmul.lt",  IIFpu>; // FIXME
+def FMUL_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fmul.gt",  IIFpu>; // FIXME
+def FMUL_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fmul.le",  IIFpu>; // FIXME
+def FMUL_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fmul.a",   IIFpu>; // FIXME
+def FMUL_N   : VC4_3_OP4_S32_G <0b0000, 0b1111, "fmul.n",   IIFpu>; // FIXME
+
+def FDIV_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fdiv.eq",  IIFpu>; // FIXME
+def FDIV_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fdiv.ne",  IIFpu>; // FIXME
+def FDIV_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fdiv.cs",  IIFpu>; // FIXME
+def FDIV_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fdiv.cc",  IIFpu>; // FIXME
+def FDIV_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fdiv.mi",  IIFpu>; // FIXME
+def FDIV_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fdiv.pl",  IIFpu>; // FIXME
+def FDIV_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fdiv.vs",  IIFpu>; // FIXME
+def FDIV_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fdiv.vc",  IIFpu>; // FIXME
+def FDIV_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fdiv.ugt", IIFpu>; // FIXME
+def FDIV_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fdiv.ule", IIFpu>; // FIXME
+def FDIV_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fdiv.ge",  IIFpu>; // FIXME
+def FDIV_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fdiv.lt",  IIFpu>; // FIXME
+def FDIV_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fdiv.gt",  IIFpu>; // FIXME
+def FDIV_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fdiv.le",  IIFpu>; // FIXME
+def FDIV_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fdiv.a",   IIFpu>; // FIXME
+def FDIV_N  :  VC4_3_OP4_S32_G <0b0000, 0b1111, "fdiv.n",   IIFpu>; // FIXME
+
+def FMAX_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fmax.eq",  IIFpu>; // FIXME
+def FMAX_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fmax.ne",  IIFpu>; // FIXME
+def FMAX_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fmax.cs",  IIFpu>; // FIXME
+def FMAX_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fmax.cc",  IIFpu>; // FIXME
+def FMAX_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fmax.mi",  IIFpu>; // FIXME
+def FMAX_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fmax.pl",  IIFpu>; // FIXME
+def FMAX_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fmax.vs",  IIFpu>; // FIXME
+def FMAX_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fmax.vc",  IIFpu>; // FIXME
+def FMAX_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fmax.ugt", IIFpu>; // FIXME
+def FMAX_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fmax.ule", IIFpu>; // FIXME
+def FMAX_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fmax.ge",  IIFpu>; // FIXME
+def FMAX_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fmax.lt",  IIFpu>; // FIXME
+def FMAX_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fmax.gt",  IIFpu>; // FIXME
+def FMAX_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fmax.le",  IIFpu>; // FIXME
+def FMAX_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fmax.a",   IIFpu>; // FIXME
+def FMAX_N   : VC4_3_OP4_S32_G <0b0000, 0b1111, "fmax.n",   IIFpu>; // FIXME
+
+def FMIN_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fmin.eq",  IIFpu>; // FIXME
+def FMIN_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fmin.ne",  IIFpu>; // FIXME
+def FMIN_CS  : VC4_3_OP4_S32_G <0b0000, 0b0010, "fmin.cs",  IIFpu>; // FIXME
+def FMIN_CC  : VC4_3_OP4_S32_G <0b0000, 0b0011, "fmin.cc",  IIFpu>; // FIXME
+def FMIN_MI  : VC4_3_OP4_S32_G <0b0000, 0b0100, "fmin.mi",  IIFpu>; // FIXME
+def FMIN_PL  : VC4_3_OP4_S32_G <0b0000, 0b0101, "fmin.pl",  IIFpu>; // FIXME
+def FMIN_VS  : VC4_3_OP4_S32_G <0b0000, 0b0110, "fmin.vs",  IIFpu>; // FIXME
+def FMIN_VC  : VC4_3_OP4_S32_G <0b0000, 0b0111, "fmin.vc",  IIFpu>; // FIXME
+def FMIN_UGT : VC4_3_OP4_S32_G <0b0000, 0b1000, "fmin.ugt", IIFpu>; // FIXME
+def FMIN_ULE : VC4_3_OP4_S32_G <0b0000, 0b1001, "fmin.ule", IIFpu>; // FIXME
+def FMIN_GE  : VC4_3_OP4_S32_G <0b0000, 0b1010, "fmin.ge",  IIFpu>; // FIXME
+def FMIN_LT  : VC4_3_OP4_S32_G <0b0000, 0b1011, "fmin.lt",  IIFpu>; // FIXME
+def FMIN_GT  : VC4_3_OP4_S32_G <0b0000, 0b1100, "fmin.gt",  IIFpu>; // FIXME
+def FMIN_LE  : VC4_3_OP4_S32_G <0b0000, 0b1101, "fmin.le",  IIFpu>; // FIXME
+def FMIN_A   : VC4_3_OP4_S32_G <0b0000, 0b1110, "fmin.a",   IIFpu>; // FIXME
+def FMIN_N   : VC4_3_OP4_S32_G <0b0000, 0b1111, "fmin.n",   IIFpu>; // FIXME
+
+def FADDI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "faddi.eq",  IIFpu>; // FIXME
+def FADDI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "faddi.ne",  IIFpu>; // FIXME
+def FADDI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "faddi.cs",  IIFpu>; // FIXME
+def FADDI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "faddi.cc",  IIFpu>; // FIXME
+def FADDI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "faddi.mi",  IIFpu>; // FIXME
+def FADDI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "faddi.pl",  IIFpu>; // FIXME
+def FADDI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "faddi.vs",  IIFpu>; // FIXME
+def FADDI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "faddi.vc",  IIFpu>; // FIXME
+def FADDI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "faddi.ugt", IIFpu>; // FIXME
+def FADDI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "faddi.ule", IIFpu>; // FIXME
+def FADDI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "faddi.ge",  IIFpu>; // FIXME
+def FADDI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "faddi.lt",  IIFpu>; // FIXME
+def FADDI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "faddi.gt",  IIFpu>; // FIXME
+def FADDI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "faddi.le",  IIFpu>; // FIXME
+def FADDI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "faddi.a",   IIFpu>; // FIXME
+def FADDI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "faddi.n",   IIFpu>; // FIXME
+
+def FSUBI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "fsubi.eq",  IIFpu>; // FIXME
+def FSUBI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "fsubi.ne",  IIFpu>; // FIXME
+def FSUBI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "fsubi.cs",  IIFpu>; // FIXME
+def FSUBI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "fsubi.cc",  IIFpu>; // FIXME
+def FSUBI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "fsubi.mi",  IIFpu>; // FIXME
+def FSUBI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "fsubi.pl",  IIFpu>; // FIXME
+def FSUBI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "fsubi.vs",  IIFpu>; // FIXME
+def FSUBI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "fsubi.vc",  IIFpu>; // FIXME
+def FSUBI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "fsubi.ugt", IIFpu>; // FIXME
+def FSUBI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "fsubi.ule", IIFpu>; // FIXME
+def FSUBI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "fsubi.ge",  IIFpu>; // FIXME
+def FSUBI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "fsubi.lt",  IIFpu>; // FIXME
+def FSUBI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "fsubi.gt",  IIFpu>; // FIXME
+def FSUBI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "fsubi.le",  IIFpu>; // FIXME
+def FSUBI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "fsubi.a",   IIFpu>; // FIXME
+def FSUBI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "fsubi.n",   IIFpu>; // FIXME
+
+def FMULI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "fmuli.eq",  IIFpu>; // FIXME
+def FMULI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "fmuli.ne",  IIFpu>; // FIXME
+def FMULI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "fmuli.cs",  IIFpu>; // FIXME
+def FMULI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "fmuli.cc",  IIFpu>; // FIXME
+def FMULI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "fmuli.mi",  IIFpu>; // FIXME
+def FMULI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "fmuli.pl",  IIFpu>; // FIXME
+def FMULI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "fmuli.vs",  IIFpu>; // FIXME
+def FMULI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "fmuli.vc",  IIFpu>; // FIXME
+def FMULI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "fmuli.ugt", IIFpu>; // FIXME
+def FMULI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "fmuli.ule", IIFpu>; // FIXME
+def FMULI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "fmuli.ge",  IIFpu>; // FIXME
+def FMULI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "fmuli.lt",  IIFpu>; // FIXME
+def FMULI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "fmuli.gt",  IIFpu>; // FIXME
+def FMULI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "fmuli.le",  IIFpu>; // FIXME
+def FMULI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "fmuli.a",   IIFpu>; // FIXME
+def FMULI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "fmuli.n",   IIFpu>; // FIXME
+
+def FDIVI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "fdivi.eq",  IIFpu>; // FIXME
+def FDIVI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "fdivi.ne",  IIFpu>; // FIXME
+def FDIVI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "fdivi.cs",  IIFpu>; // FIXME
+def FDIVI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "fdivi.cc",  IIFpu>; // FIXME
+def FDIVI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "fdivi.mi",  IIFpu>; // FIXME
+def FDIVI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "fdivi.pl",  IIFpu>; // FIXME
+def FDIVI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "fdivi.vs",  IIFpu>; // FIXME
+def FDIVI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "fdivi.vc",  IIFpu>; // FIXME
+def FDIVI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "fdivi.ugt", IIFpu>; // FIXME
+def FDIVI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "fdivi.ule", IIFpu>; // FIXME
+def FDIVI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "fdivi.ge",  IIFpu>; // FIXME
+def FDIVI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "fdivi.lt",  IIFpu>; // FIXME
+def FDIVI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "fdivi.gt",  IIFpu>; // FIXME
+def FDIVI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "fdivi.le",  IIFpu>; // FIXME
+def FDIVI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "fdivi.a",   IIFpu>; // FIXME
+def FDIVI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "fdivi.n",   IIFpu>; // FIXME
+
+def FMAXI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "fmaxi.eq",  IIFpu>; // FIXME
+def FMAXI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "fmaxi.ne",  IIFpu>; // FIXME
+def FMAXI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "fmaxi.cs",  IIFpu>; // FIXME
+def FMAXI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "fmaxi.cc",  IIFpu>; // FIXME
+def FMAXI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "fmaxi.mi",  IIFpu>; // FIXME
+def FMAXI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "fmaxi.pl",  IIFpu>; // FIXME
+def FMAXI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "fmaxi.vs",  IIFpu>; // FIXME
+def FMAXI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "fmaxi.vc",  IIFpu>; // FIXME
+def FMAXI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "fmaxi.ugt", IIFpu>; // FIXME
+def FMAXI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "fmaxi.ule", IIFpu>; // FIXME
+def FMAXI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "fmaxi.ge",  IIFpu>; // FIXME
+def FMAXI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "fmaxi.lt",  IIFpu>; // FIXME
+def FMAXI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "fmaxi.gt",  IIFpu>; // FIXME
+def FMAXI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "fmaxi.le",  IIFpu>; // FIXME
+def FMAXI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "fmaxi.a",   IIFpu>; // FIXME
+def FMAXI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "fmaxi.n",   IIFpu>; // FIXME
+
+def FMINI_EQ  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0000, "fmini.eq",  IIFpu>; // FIXME
+def FMINI_NE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0001, "fmini.ne",  IIFpu>; // FIXME
+def FMINI_CS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0010, "fmini.cs",  IIFpu>; // FIXME
+def FMINI_CC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0011, "fmini.cc",  IIFpu>; // FIXME
+def FMINI_MI  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0100, "fmini.mi",  IIFpu>; // FIXME
+def FMINI_PL  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0101, "fmini.pl",  IIFpu>; // FIXME
+def FMINI_VS  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0110, "fmini.vs",  IIFpu>; // FIXME
+def FMINI_VC  : VC4_3_OP4_S32_IMM_G <0b0000, 0b0111, "fmini.vc",  IIFpu>; // FIXME
+def FMINI_UGT : VC4_3_OP4_S32_IMM_G <0b0000, 0b1000, "fmini.ugt", IIFpu>; // FIXME
+def FMINI_ULE : VC4_3_OP4_S32_IMM_G <0b0000, 0b1001, "fmini.ule", IIFpu>; // FIXME
+def FMINI_GE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1010, "fmini.ge",  IIFpu>; // FIXME
+def FMINI_LT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1011, "fmini.lt",  IIFpu>; // FIXME
+def FMINI_GT  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1100, "fmini.gt",  IIFpu>; // FIXME
+def FMINI_LE  : VC4_3_OP4_S32_IMM_G <0b0000, 0b1101, "fmini.le",  IIFpu>; // FIXME
+def FMINI_A   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1110, "fmini.a",   IIFpu>; // FIXME
+def FMINI_N   : VC4_3_OP4_S32_IMM_G <0b0000, 0b1111, "fmini.n",   IIFpu>; // FIXME
+
+let isReturn = 1, isTerminator = 1, isBarrier = 1, Uses=[LR] in {
+  def RET : S32<(outs), (ins variable_ops),
+		 "b\t%lr",
+		 [(retflag)]>;
+}
+
+/* --- Calls ---------------------------------------------------------------- */
+// ADJCALLSTACKDOWN/UP implicitly use/def SP because they may be expanded into
+// a stack adjustment and the codegen must know that they may modify the stack
+// pointer before prolog-epilog rewriting occurs.
+// Pessimistically assume ADJCALLSTACKDOWN / ADJCALLSTACKUP will become
+// sub / add which can clobber SP.
+let Defs = [SP], Uses = [SP] in {
+  def ADJCALLSTACKDOWN : VideoCore4Inst<(outs), (ins i32imm:$d, i32imm:$e),
+				         "#ADJCALLSTACKDOWN $d",
+				         [(callseq_start timm:$d, (i32 timm:$e))]>;
+  def ADJCALLSTACKUP : VideoCore4Inst<(outs), (ins i32imm:$a, i32imm:$b),
+				       "#ADJCALLSTACKUP $a $b",
+			   	       [(callseq_end timm:$a, timm:$b)]>;
+}
+
+let isCall = 1, Uses = [LR], Defs = [LR, R0, R1] in {
+  def CALL : S32<(outs), (ins calltarget:$D, variable_ops),
+  		  "bl\t$D",
+		  [(call texternalsym:$D)]>;
+  def CALL_R : S16<(outs), (ins GR32:$D),
+  	            "bl\t$D",
+	  	    [(call GR32:$D)]>;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// ALU Instruction Formats
+////////////////////////////////////////////////////////////////////////////////////
+multiclass ALU1_REG<string op, RegisterClass rc, dag node> {
+  let Constraints = "$D = $A" in {
+    def _R : S16<(outs rc:$D), (ins rc:$A),
+   	          op,
+	          [(set (i32 rc:$D), node)]>;
+  }
+}
+multiclass ALU1_REG_REG<string op, RegisterClass rc, dag node> {
+  def _RR : S16<(outs rc:$D), (ins rc:$A),
+   	         op,
+	         [(set (i32 rc:$D), node)]>;
+}
+multiclass ALU1_REG_IMM<string op, RegisterClass rc, dag node> {
+  def _RI : S16<(outs rc:$D), (ins i32imm:$A),
+  	         op,
+	         [(set (i32 rc:$D), node)]>;
+}
+multiclass ALU1_F_RI<string op2, string op3, PatFrag node> {
+  defm _F : ALU1_REG     <op2, FR32, (node FR32:$A)>;
+  defm _F : ALU1_REG_REG <op3, FR32, (node FR32:$A)>;
+
+  defm _R : ALU1_REG     <op2, GR32, (node GR32:$A)>;
+  defm _R : ALU1_REG_REG <op3, GR32, (node GR32:$A)>;
+  defm _R : ALU1_REG_IMM <op3, GR32, (node immU5:$A)>;
+}
+multiclass ALU1_FI_RI<string op2, string op3, PatFrag node> {
+  defm _F : ALU1_REG     <op2, FR32, (node FR32:$A)>;
+  defm _F : ALU1_REG_REG <op3, FR32, (node FR32:$A)>;
+  defm _F : ALU1_REG_IMM <op3, FR32, (node immU5:$A)>;
+
+  defm _R : ALU1_REG     <op2, GR32, (node GR32:$A)>;
+  defm _R : ALU1_REG_REG <op3, GR32, (node GR32:$A)>;
+  defm _R : ALU1_REG_IMM <op3, GR32, (node immU5:$A)>;
+}
+
+/* --- ALU two-input instruction forms -------------------------------------- */
+multiclass ALU2_REG_IMM<string op, RegisterClass rc, dag node> {
+  let Constraints = "$D = $A" in {
+    def _RI : S16<(outs rc:$D), (ins rc:$A, i32imm:$B),
+    	           op,
+	           [(set (i32 rc:$D), node)]>;
+  }
+}
+multiclass ALU2_REG_IMM_PSEUDO<string op, RegisterClass rc> {
+  let Constraints = "$D = $A" in {
+    def _RI : S16<(outs rc:$D), (ins rc:$A, i32imm:$B),
+    	           op,
+	           []>;
+  }
+}
+multiclass ALU2_REG_REG<string op, RegisterClass rc, dag node> {
+  let Constraints = "$D = $A" in {
+    def _RR : S16<(outs rc:$D), (ins rc:$A, rc:$B),
+  	           op,
+	           [(set (i32 rc:$D), node)]>;
+  }
+}
+multiclass ALU2_REG_REG_C<string op, RegisterClass rc, dag node> {
+  let isCommutable = 1 in {
+    defm _C : ALU2_REG_REG <op, rc, node>;
+  }
+}
+multiclass ALU2_REG_REG_IMM<string op, RegisterClass rc, dag node> {
+  def _RRI : S32<(outs rc:$D), (ins rc:$A, i32imm:$B),
+    	          op,
+		  [(set (i32 rc:$D), node)]>;
+}
+multiclass ALU2_REG_REG_REG<string op, RegisterClass rc, dag node> {
+  def _RRR : S32<(outs rc:$D), (ins rc:$A, rc:$B),
+ 		  op,
+		  [(set (i32 rc:$D), node)]>;
+}
+multiclass ALU2_REG_REG_REG_C<string op, RegisterClass rc, dag node> {
+  let isCommutable = 1 in {
+    defm _C : ALU2_REG_REG_REG <op, rc, node>;
+  }
+}
+multiclass ALU2_FI_RI<string op2, string op3, PatFrag node> {
+  defm _F : ALU2_REG_IMM     <op2, FR32, (node (i32 FR32:$A), (immU5:$B))>;
+  defm _F : ALU2_REG_REG     <op2, FR32, (node (i32 FR32:$A), (i32 FR32:$B))>;
+  defm _R : ALU2_REG_REG_IMM <op3, GR32, (node (i32 GR32:$A), (immU5:$B))>;
+  defm _R : ALU2_REG_REG_REG <op3, GR32, (node (i32 GR32:$A), (i32 GR32:$B))>;
+  defm _R : ALU2_REG_IMM     <op2, GR32, (node (i32 GR32:$A), (imm:$B))>;
+}	
+multiclass ALU2_F_RI<string op2, string op3, PatFrag node> {
+  defm _F : ALU2_REG_REG     <op2, FR32, (node (i32 FR32:$A), (i32 FR32:$B))>;
+  defm _F : ALU2_REG_REG_IMM <op3, GR32, (node (i32 GR32:$A), (immU5:$B))>;
+  defm _R : ALU2_REG_REG_REG <op3, GR32, (node (i32 GR32:$A), (i32 GR32:$B))>;
+  defm _R : ALU2_REG_IMM     <op2, GR32, (node (i32 GR32:$A), (imm:$B))>;
+}
+
+/* --- ALU instructions ----------------------------------------------------- */
+defm ADD : ALU2_FI_RI<"add\t$D, $B",
+		      "add\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+			      (add node:$inA, node:$inB)>>;
+defm ADD_3_LONG : ALU2_REG_REG_IMM<"add\t$D, $A, $B",
+		                   GR32,
+		                   (add (i32 GR32:$A), imm:$B)>;
+defm MUL : ALU2_FI_RI<"mul\t$D, $B",
+		      "mul\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+			      (mul node:$inA, node:$inB)>>;
+defm XOR : ALU2_F_RI<"eor\t$D, $B",
+		     "eor\t$D, $A, $B",
+		     PatFrag<(ops node:$inA, node:$inB),
+			     (xor node:$inA, node:$inB)>>;
+defm SUB : ALU2_FI_RI<"sub\t$D, $B",
+		      "sub\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+			      (sub node:$inA, node:$inB)>>;
+defm AND : ALU2_F_RI<"and\t$D, $B",
+		     "and\t$D, $A, $B",
+		     PatFrag<(ops node:$inA, node:$inB),
+			     (and node:$inA, node:$inB)>>;
+defm NOT : ALU1_F_RI<"not\t$D, $D",
+	  	     "not\t$D, $A",
+		     PatFrag<(ops node:$in),
+			     (xor node:$in, -1)>>;
+defm RSUB : ALU2_FI_RI<"rsub\t$D, $B",
+		       "rsub\t$D, $A, $B",
+	  	       PatFrag<(ops node:$inA, node:$inB),
+			       (sub node:$inB, node:$inA)>>;
+defm OR : ALU2_F_RI<"or\t$D, $B",
+		    "or\t$D, $A, $B",
+		    PatFrag<(ops node:$inA, node:$inB),
+			    (or node:$inA, node:$inB)>>;
+defm SHR : ALU2_FI_RI<"lsr\t$D, $B",
+		      "lsr\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+			      (srl node:$inA, node:$inB)>>;
+defm SHL : ALU2_FI_RI<"lsl\t$D, $B",
+		      "lsl\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+			      (shl node:$inA, node:$inB)>>;
+defm ASR : ALU2_FI_RI<"asr\t$D, $B",
+		      "asr\t$D, $A, $B",
+		      PatFrag<(ops node:$inA, node:$inB),
+		  	      (sra node:$inA, node:$inB)>>;
+defm SEXT8 : ALU1_FI_RI<"exts\t$D, 8",
+		        "exts\t$D, $A, 8",
+		        PatFrag<(ops node:$in),
+			        (sext_inreg node:$in, i8)>>;
+defm SEXT16 : ALU1_FI_RI<"exts\t$D, 16",
+		         "exts\t$D, $A, 16",
+		         PatFrag<(ops node:$in),
+			         (sext_inreg node:$in, i16)>>;
+defm NEG : ALU1_F_RI<"neg\t$D, $D",
+		     "neg\t$D, $A",
+		     PatFrag<(ops node:$in),
+			     (sub 0, node:$in)>>;
+multiclass ADDSCALE<int n> {
+  defm _ : ALU2_F_RI<"addscale\t$D, $B scale "#n,
+   	             "addscale\t$D, $A, $B scale "#n,
+	             PatFrag<(ops node:$inA, node:$inB),
+	   	             (add node:$inA, (shl node:$inB, n))>>;
+}
+
+defm ADDs1 : ADDSCALE<1>;
+defm ADDs2 : ADDSCALE<2>;
+defm ADDs3 : ADDSCALE<3>; // actually an ALU2_FI_R instruction
+defm ADDs4 : ADDSCALE<4>;
+
+defm MULHD_UU_R : ALU2_REG_REG_REG<"mulhdu\t$D, $A, $B",
+	                            GR32,
+	                            (mulhu (i32 GR32:$A), (i32 GR32:$B))>;
+defm MULHD_UU_I : ALU2_REG_REG_IMM<"mulhdu\t$D, $A, $B",
+	                            GR32,
+	                            (mulhu (i32 GR32:$A), immS6:$B)>;
+defm MULHD_SS_R : ALU2_REG_REG_REG<"mulhds\t$D, $A, $B",
+	                            GR32,
+	                            (mulhs (i32 GR32:$A), (i32 GR32:$B))>;
+defm MULHD_SS_I : ALU2_REG_REG_IMM<"mulhds\t$D, $A, $B",
+	                            GR32,
+	                            (mulhs (i32 GR32:$A), immS6:$B)>;
+defm DIV_R : ALU2_REG_REG_REG<"divs\t$D, $A, $B",
+	                       GR32,
+	                       (sdiv (i32 GR32:$A), (i32 GR32:$B))>;
+defm MAX_RR : ALU2_REG_REG_REG<"max\t$D, $A, $B",
+	                        GR32,
+	                        (smax (i32 GR32:$A), (i32 GR32:$B))>;
+defm MIN_RR : ALU2_REG_REG_REG<"min\t$D, $A, $B",
+	                        GR32,
+	                        (smin (i32 GR32:$A), (i32 GR32:$B))>;
+def CTLZ_R : S32<(outs GR32:$rD), (ins GR32:$rA), // FIXME
+                  "clz\t$rD, $rA",
+	          [(set (i32 GR32:$rD), (ctlz (i32 GR32:$rA)))]>;
+
+/*
+defm DIV_I : ALU2_REG_REG_IMM<
+	"divs\t$D, $A, $B",
+	GR32,
+	(sdiv (i32 GR32:$A), immS6:$B)
+>;
+*/
+
+defm DIVU_R : ALU2_REG_REG_REG<"divu\t$D, $A, $B",
+	                        GR32,
+	                        (udiv (i32 GR32:$A), (i32 GR32:$B))>;
+defm DIVU_I : ALU2_REG_REG_IMM<"divu\t$D, $A, $B",
+	                        GR32,
+	                        (udiv (i32 GR32:$A), immS6:$B)>;
+
+////////////////////////////////////////////////////////////////////////////////////
+// Memory Operations
+////////////////////////////////////////////////////////////////////////////////////
+/* Small fastreg loads/stores. */
+multiclass MEMST_F<string op, ValueType vt, PatFrag stop> {
+  def _F : S16<(outs), (ins FR32:$S, FR32:$D),
+                "st"#op#"\t$S, ($D)",
+	        [(stop (vt FR32:$S), (iPTR FR32:$D))]>;
+}
+multiclass MEMLD_F<string op, ValueType vt, PatFrag ldop> {
+  def _F : S16<(outs FR32:$D), (ins FR32:$S),
+  	        "ld"#op#"\t$D, ($S)",
+	        [(set (vt FR32:$D), (ldop (iPTR FR32:$S)))]>;
+}
+multiclass MEM_F<string op, ValueType vt, PatFrag stop, PatFrag ldop> {
+  defm _ST : MEMST_F <op, vt, stop>;
+  defm _LD : MEMLD_F <op, vt, ldop>;
+}
+defm MEM8     : MEM_F   <"b", i32, truncstorei8, zextloadi8>;
+defm MEM8E_LD : MEMLD_F <"b", i32, extloadi8>;
+
+defm MEM16     : MEM_F   <"h",  i32, truncstorei16, zextloadi16>;
+defm MEM16S_LD : MEMLD_F <"cc", i32, sextloadi16>;
+defm MEM16E_LD : MEMLD_F <"h",  i32, extloadi16>;
+
+defm MEM32  : MEM_F <"", i32, store, load>;
+defm MEM32F : MEM_F <"", f32, store, load>;
+
+/* Indexed loads/stores. */
+multiclass MEMST_R_I<string op, ValueType vt, PatFrag stop, PatFrag scale> {
+  def _R : S32<(outs), (ins GR32:$S, GR32:$A, GR32:$B),
+		"st"#op#"\t$S, ($A, $B)",
+		[(stop (vt GR32:$S),
+		(iPTR (scale (i32 GR32:$A), (i32 GR32:$B))))]>;
+  def _I : S32<(outs), (ins GR32:$S, GR32:$A, i32imm:$B),
+		"st"#op#"\t$S, $B ($A)",
+		[(stop (vt GR32:$S),
+		(iPTR (add (i32 GR32:$A), immU12:$B)))]>;
+  def _LI : S32<(outs), (ins GR32:$S, IR32:$A, i32imm:$B),
+		 "st"#op#"\t$S, $B ($A)",
+		 [(stop (vt GR32:$S),
+		 (iPTR (add (i32 IR32:$A), immU16:$B)))]>;
+}
+
+multiclass MEMLD_R_I<string op, ValueType vt, PatFrag ldop, PatFrag scale> {
+  def _R : S32<(outs GR32:$D), (ins GR32:$A, GR32:$B),
+		"ld"#op#"\t$D, ($A, $B)",
+		[(set (vt GR32:$D),
+		(ldop (iPTR (scale (i32 GR32:$A), (i32 GR32:$B)))))]>;
+  def _I : S32<(outs GR32:$D), (ins GR32:$A, i32imm:$B),
+		"ld"#op#"\t$D, $B ($A)",
+		[(set (vt GR32:$D),
+		(ldop (iPTR (add (i32 GR32:$A), immU12:$B))))]>;
+  def _LI : S32<(outs GR32:$D), (ins IR32:$A, i32imm:$B),
+		"ld"#op#"\t$D, $B ($A)",
+		[(set (vt GR32:$D),
+		(ldop (iPTR (add (i32 IR32:$A), immU16:$B))))]>;
+}
+
+multiclass MEM_R_I<string op, ValueType vt, PatFrag stop, PatFrag ldop, PatFrag scale> {
+  defm _LD : MEMLD_R_I <op, vt, ldop, scale>;
+  defm _ST : MEMST_R_I <op, vt, stop, scale>;
+}
+
+def memb_frag : PatFrag<(ops node:$inA, node:$inB),
+			(add node:$inA, node:$inB)>;
+defm MEM8     : MEM_R_I   <"b", i32, truncstorei8, zextloadi8, memb_frag>;
+defm MEM8E_LD : MEMLD_R_I <"b", i32, extloadi8,    memb_frag>;
+
+def memh_frag : PatFrag<(ops node:$inA, node:$inB),
+			(add node:$inA, (shl node:$inB, 1))>;
+defm MEM16     : MEM_R_I   <"h",  i32, truncstorei16, zextloadi16, memh_frag>;
+defm MEM16S_LD : MEMLD_R_I <"cc", i32, sextloadi16,   memh_frag>;
+defm MEM16E_LD : MEMLD_R_I <"cc", i32, extloadi16,    memh_frag>;
+
+defm MEM32 : MEM_R_I<"", i32, store, load,
+		     PatFrag<(ops node:$inA, node:$inB),
+		             (add node:$inA, (shl node:$inB, 2))>>;
+
+/* Stack frame loads/stores. */
+multiclass MEMFRAME<string op, ValueType vt> {
+  def _LD : S32<(outs GR32:$D), (ins stacked:$A),
+		"ld"#op#"\t$D, $A",
+		[(set (vt GR32:$D), (load (iPTR stacked:$A)))]>;
+  def _ST : S32<(outs), (ins GR32:$A, stacked:$B),
+		"st"#op#"\t$A, $B",
+		[(store (vt GR32:$A), (iPTR stacked:$B))]>;
+}
+
+def PUSH : S32<(outs), (ins PUSHPOP_START_REGS:$StartReg, GR32:$EndReg),
+		"push\t$StartReg-$EndReg",
+		[]>;
+def PUSH_LR : S32<(outs), (ins PUSHPOP_START_REGS:$StartReg, GR32:$EndReg),
+		   "push\t$StartReg-$EndReg, %lr",
+                   []>;
+def POP : S32<(outs), (ins PUSHPOP_START_REGS:$StartReg, GR32:$EndReg),
+	       "pop\t$StartReg-$EndReg",
+	       []>;
+def POP_PC : S32<(outs), (ins PUSHPOP_START_REGS:$StartReg, GR32:$EndReg),
+		  "push\t$StartReg-$EndReg, %pc",
+		  []>;
+defm MEMFRAME  : MEMFRAME<"", i32>;
+defm MEMFRAMEF : MEMFRAME<"", f32>;
+
+/* --- Moves and specials --------------------------------------------------- */
+
+let isAsCheapAsAMove = 1 in
+{
+  class MOV<RegisterClass rc, dag node> :
+    S16<(outs rc:$D), (ins rc:$S),
+         "mov\t$D, $S",
+         [(set rc:$D, node)]>;
+
+  class MOVI<RegisterClass rc, dag node> :
+    S16<(outs rc:$D), (ins i32imm:$S),
+         "mov\t$D, $S",
+         [(set rc:$D, node)]>;
+
+  def MOV_FI : MOVI <FR32, (i32 immU5:$S)>;
+  def MOV_RI : MOVI <GR32, (i32 immU5:$S)>;
+
+  def MOV_F : S16<(outs FR32:$D), (ins FR32:$A),
+  	 	   "mov\t$D, $A",
+		   []>;
+
+  def MOV_R : S32<(outs GR32:$D), (ins GR32:$A),
+   	    	   "mov\t$D, $A",
+		   []>;
+
+  def MOV_LI : S48<(outs GR32:$D), (ins i32imm:$A),
+  	       	    "mov\t$D, $A",
+	            [(set GR32:$D, imm:$A)]>;
+}
+
+def LEA_PC_LI : S48<(outs GR32:$D), (ins i32imm:$A),
+		     "lea\t$D, $A(%pc)",
+		     [(set GR32:$D, tglobaladdr:$A)]> {
+  bits<5>           D;
+  bits<32>          A;
+  let Inst{47-37} = 0b11100101000;
+  let Inst{36-32} = D;
+  let Inst{31-0}  = A;
+  let Uses        = [PC];
+}
+
+def : Pat<(GlobalWrapper tglobaladdr:$addr),
+	  (LEA_PC_LI tglobaladdr:$addr)>;
+
+let isBranch=1, isIndirectBranch=1, isTerminator=1, isBarrier = 1, hasDelaySlot = 1 in {
+  def BR_JT : S48<(outs), (ins InlineJT:$t, GR32:$i),
+                   "# BR_JT Pseudo Instruction $i\n$t",
+                   [(VideoCoreBR_JT tjumptable:$t, GR32:$i)]>;
+}
+
+// --- Branch instructions -------------------------------------------------- 
+
+// ToDo
+let Defs = [SR] in {
+  def CMP_LI : S48<(outs), (ins GR32:$A, i32imm:$B),
+		    "cmp\t$A, $B",
+		    []>;
+}
+
+let isTerminator = 1, isBranch = 1 in {
+  /* Generates a 3op compare-and-branch instruction. */
+  let Uses = [SR], hasDelaySlot = 1 in {
+    class JMP_CC<string cond> : S32<
+ 		 (outs), (ins brtarget:$dst), // FIXME?
+		 "b"#cond#"\t$dst",
+		 []>;
+    def JMP_CC_EQ  : JMP_CC<"eq">;
+    def JMP_CC_NE  : JMP_CC<"ne">;
+    def JMP_CC_GT  : JMP_CC<"gt">;
+    def JMP_CC_GE  : JMP_CC<"ge">;
+    def JMP_CC_LT  : JMP_CC<"lt">;
+    def JMP_CC_LE  : JMP_CC<"le">;
+    def JMP_CC_UGT : JMP_CC<"ugt">;
+    def JMP_CC_UGE : JMP_CC<"uge">;
+    def JMP_CC_ULT : JMP_CC<"ult">;
+    def JMP_CC_ULE : JMP_CC<"ule">;
+
+    def JMP_TRUE_P : VideoCore4Pseudo<(outs), (ins brtarget:$dst),
+    	       	 	               "brt\t$dst",
+				       []>;
+  }
+
+  let Defs = [SR], isCodeGenOnly = 1 in {
+    class JMP_COMP_P<string cond> : VideoCore4Pseudo<(outs), (ins FR32:$ra, FR32:$rb, brtarget:$dst),
+  	 	                                      !strconcat(cond,""),
+		                                      []>;
+    class JMP_COMP_F_P<string cond> : VideoCore4Pseudo<(outs), (ins FR32:$ra, FR32:$rb, brtarget:$dst),
+       	 	                                        !strconcat(cond,""),
+		                                        []>;
+    // True
+    def JMP_COMP_EQ_P  : JMP_COMP_P<"eq">;
+    def JMP_COMP_NE_P  : JMP_COMP_P<"ne">;
+    def JMP_COMP_GT_P  : JMP_COMP_P<"gt">;
+    def JMP_COMP_GE_P  : JMP_COMP_P<"ge">;
+    def JMP_COMP_LT_P  : JMP_COMP_P<"lt">;
+    def JMP_COMP_LE_P  : JMP_COMP_P<"le">;
+    def JMP_COMP_UGT_P : JMP_COMP_P<"ugt">;
+    def JMP_COMP_UGE_P : JMP_COMP_P<"uge">;
+    def JMP_COMP_ULT_P : JMP_COMP_P<"ult">;
+    def JMP_COMP_ULE_P : JMP_COMP_P<"ule">;
+
+    // False
+    def JMP_COMP_EQ_F_P  : JMP_COMP_F_P<"eq">;
+    def JMP_COMP_NE_F_P  : JMP_COMP_F_P<"ne">;
+    def JMP_COMP_GT_F_P  : JMP_COMP_F_P<"gt">;
+    def JMP_COMP_GE_F_P  : JMP_COMP_F_P<"ge">;
+    def JMP_COMP_LT_F_P  : JMP_COMP_F_P<"lt">;
+    def JMP_COMP_LE_F_P  : JMP_COMP_F_P<"le">;
+    def JMP_COMP_UGT_F_P : JMP_COMP_F_P<"ugt">;
+    def JMP_COMP_UGE_F_P : JMP_COMP_F_P<"uge">;
+    def JMP_COMP_ULT_F_P : JMP_COMP_F_P<"ult">;
+    def JMP_COMP_ULE_F_P : JMP_COMP_F_P<"ule">;
+  }
+
+  /* Likewise, for floats. */
+  let Defs = [SR], isCodeGenOnly = 1 in {
+    class JMP_FCOMP_P<string cond> : VideoCore4Pseudo<(outs), (ins FR32:$ra, FR32:$rb, brtarget:$dst),
+       	 	                                       !strconcat(cond,""),
+	                                               []>;
+    class JMP_FCOMP_F_P<string cond> : VideoCore4Pseudo<(outs), (ins FR32:$ra, FR32:$rb, brtarget:$dst),
+       	 	                                         !strconcat(cond,""),
+	                                                 []>;
+    // True
+    def JMP_FCOMP_OEQ_P : JMP_FCOMP_P<"oeq">;
+    def JMP_FCOMP_ONE_P : JMP_FCOMP_P<"one">;
+    def JMP_FCOMP_OGT_P : JMP_FCOMP_P<"ogt">;
+    def JMP_FCOMP_OGE_P : JMP_FCOMP_P<"oge">;
+    def JMP_FCOMP_OLT_P : JMP_FCOMP_P<"olt">;
+    def JMP_FCOMP_OLE_P : JMP_FCOMP_P<"ole">;
+    def JMP_FCOMP_UEQ_P : JMP_FCOMP_P<"ueq">;
+    def JMP_FCOMP_UNE_P : JMP_FCOMP_P<"une">;
+    def JMP_FCOMP_UGT_P : JMP_FCOMP_P<"ugt">;
+    def JMP_FCOMP_UGE_P : JMP_FCOMP_P<"uge">;
+    def JMP_FCOMP_ULT_P : JMP_FCOMP_P<"ult">;
+    def JMP_FCOMP_ULE_P : JMP_FCOMP_P<"ule">;
+    // False
+    def JMP_FCOMP_OEQ_F_P : JMP_FCOMP_F_P<"oeq">;
+    def JMP_FCOMP_ONE_F_P : JMP_FCOMP_F_P<"one">;
+    def JMP_FCOMP_OGT_F_P : JMP_FCOMP_F_P<"ogt">;
+    def JMP_FCOMP_OGE_F_P : JMP_FCOMP_F_P<"oge">;
+    def JMP_FCOMP_OLT_F_P : JMP_FCOMP_F_P<"olt">;
+    def JMP_FCOMP_OLE_F_P : JMP_FCOMP_F_P<"ole">;
+    def JMP_FCOMP_UEQ_F_P : JMP_FCOMP_F_P<"ueq">;
+    def JMP_FCOMP_UNE_F_P : JMP_FCOMP_F_P<"une">;
+    def JMP_FCOMP_UGT_F_P : JMP_FCOMP_F_P<"ugt">;
+    def JMP_FCOMP_UGE_F_P : JMP_FCOMP_F_P<"uge">;
+    def JMP_FCOMP_ULT_F_P : JMP_FCOMP_F_P<"ult">;
+    def JMP_FCOMP_ULE_F_P : JMP_FCOMP_F_P<"ule">;
+  }
+}
+
+let isCodeGenOnly = 1, Uses = [SR] in {
+  let Constraints = "$d = $f" in {
+    class SELECT_P<string cond> : VideoCore4Pseudo<(outs FR32:$d), (ins FR32:$t, FR32:$f, FR32:$lhs, FR32:$rhs),
+     	 	                                    !strconcat(cond,""),
+			                            []>;
+    class FSELECT_P<string cond> : VideoCore4Pseudo<(outs FR32:$d), (ins FR32:$t, FR32:$f, FR32:$lhs, FR32:$rhs),
+     	 	                                     !strconcat(cond,""),
+			                             []>;
+    class F_SELECT_P<string cond> : VideoCore4Pseudo<(outs GR32:$d), (ins GR32:$t, GR32:$f, GR32:$lhs, GR32:$rhs),
+     	 	                                      !strconcat(cond,""),
+			                              []>;
+    class F_FSELECT_P<string cond> : VideoCore4Pseudo<(outs GR32:$d), (ins GR32:$t, GR32:$f, GR32:$lhs, GR32:$rhs),
+     	 	                                       !strconcat(cond,""),
+			                               []>;
+    // int select
+    def SELECT_EQ_P : SELECT_P<"eq">;
+    def SELECT_NE_P : SELECT_P<"ne">;
+    def SELECT_GT_P : SELECT_P<"gt">;
+    def SELECT_GE_P : SELECT_P<"ge">;
+    def SELECT_LT_P : SELECT_P<"lt">;
+    def SELECT_LE_P : SELECT_P<"le">;
+    def SELECT_UGT_P : SELECT_P<"ugt">;
+    def SELECT_UGE_P : SELECT_P<"uge">;
+    def SELECT_ULT_P : SELECT_P<"ult">;
+    def SELECT_ULE_P : SELECT_P<"ule">;
+
+    def FSELECT_EQ_P : FSELECT_P<"eq">;
+    def FSELECT_NE_P : FSELECT_P<"ne">;
+    def FSELECT_GT_P : FSELECT_P<"gt">;
+    def FSELECT_GE_P : FSELECT_P<"ge">;
+    def FSELECT_LT_P : FSELECT_P<"lt">;
+    def FSELECT_LE_P : FSELECT_P<"le">;
+    def FSELECT_UGT_P : FSELECT_P<"ugt">;
+    def FSELECT_UGE_P : FSELECT_P<"uge">;
+    def FSELECT_ULT_P : FSELECT_P<"ult">;
+    def FSELECT_ULE_P : FSELECT_P<"ule">;
+
+    // float select
+    def F_SELECT_OEQ_P : F_SELECT_P<"oeq">;
+    def F_SELECT_ONE_P : F_SELECT_P<"one">;
+    def F_SELECT_OGT_P : F_SELECT_P<"ogt">;
+    def F_SELECT_OGE_P : F_SELECT_P<"oge">;
+    def F_SELECT_OLT_P : F_SELECT_P<"oge">;
+    def F_SELECT_OLE_P : F_SELECT_P<"ole">;
+    def F_SELECT_UEQ_P : F_SELECT_P<"ueq">;
+    def F_SELECT_UNE_P : F_SELECT_P<"une">;
+    def F_SELECT_UGT_P : F_SELECT_P<"ugt">;
+    def F_SELECT_UGE_P : F_SELECT_P<"uge">;
+    def F_SELECT_ULT_P : F_SELECT_P<"ult">;
+    def F_SELECT_ULE_P : F_SELECT_P<"ule">;
+
+    def F_FSELECT_OEQ_P : F_FSELECT_P<"oeq">;
+    def F_FSELECT_ONE_P : F_FSELECT_P<"one">;
+    def F_FSELECT_OGT_P : F_FSELECT_P<"ogt">;
+    def F_FSELECT_OGE_P : F_FSELECT_P<"oge">;
+    def F_FSELECT_OLT_P : F_FSELECT_P<"oge">;
+    def F_FSELECT_OLE_P : F_FSELECT_P<"ole">;
+    def F_FSELECT_UEQ_P : F_FSELECT_P<"ueq">;
+    def F_FSELECT_UNE_P : F_FSELECT_P<"une">;
+    def F_FSELECT_UGT_P : F_FSELECT_P<"ugt">;
+    def F_FSELECT_UGE_P : F_FSELECT_P<"uge">;
+    def F_FSELECT_ULT_P : F_FSELECT_P<"uge">;
+    def F_FSELECT_ULE_P : F_FSELECT_P<"ule">;
+  }
+
+  class CMOV_RR<string cond> : S32<(outs FR32:$d), (ins FR32:$t), // FIXME (instruction length?)
+    	 	                    "mov"#cond#"\t$d, $t",
+		 	            []>;
+  class CMOV_RI<string cond> : S32<(outs FR32:$d), (ins i32imm:$t), // FIXME (instruction length?)
+    	 	                    "mov"#cond#"\t$d, $t",
+		 	            []>;
+  def CMOV_EQ_RR  : CMOV_RR<"eq">;
+  def CMOV_NE_RR  : CMOV_RR<"ne">;
+  def CMOV_GT_RR  : CMOV_RR<"gt">;
+  def CMOV_GE_RR  : CMOV_RR<"ge">;
+  def CMOV_LT_RR  : CMOV_RR<"lt">;
+  def CMOV_LE_RR  : CMOV_RR<"le">;
+  def CMOV_UGT_RR : CMOV_RR<"ugt">;
+  def CMOV_UGE_RR : CMOV_RR<"uge">;
+  def CMOV_ULT_RR : CMOV_RR<"ult">;
+  def CMOV_ULE_RR : CMOV_RR<"ule">;
+
+  def CMOV_EQ_RI  : CMOV_RI<"eq">;
+  def CMOV_NE_RI  : CMOV_RI<"ne">;
+  def CMOV_GT_RI  : CMOV_RI<"gt">;
+  def CMOV_GE_RI  : CMOV_RI<"ge">;
+  def CMOV_LT_RI  : CMOV_RI<"lt">;
+  def CMOV_LE_RI  : CMOV_RI<"le">;
+  def CMOV_UGT_RI : CMOV_RI<"ugt">;
+  def CMOV_UGE_RI : CMOV_RI<"uge">;
+  def CMOV_ULT_RI : CMOV_RI<"ult">;
+  def CMOV_ULE_RI : CMOV_RI<"ule">;
+}
+
+class SETCC_RR_P<string cond> : VideoCore4Pseudo<(outs FR32:$d), (ins FR32:$a, FR32:$b),
+   	 	                                  !strconcat(cond,""),
+		 	                          []>;
+class SETCC_RI_P<string cond> : VideoCore4Pseudo<(outs FR32:$d), (ins FR32:$a, i32imm:$b),
+   	 	                                  !strconcat(cond,""),
+		 	                          []>;
+class F_SETCC_RR_P<string cond> : VideoCore4Pseudo<(outs GR32:$d), (ins GR32:$a, GR32:$b),
+   	 	                                    !strconcat(cond,""),
+		 	                            []>;
+def SETCC_EQ_RR_P  : SETCC_RR_P<"eq">;
+def SETCC_NE_RR_P  : SETCC_RR_P<"ne">;
+def SETCC_GT_RR_P  : SETCC_RR_P<"gt">;
+def SETCC_GE_RR_P  : SETCC_RR_P<"ge">;
+def SETCC_LT_RR_P  : SETCC_RR_P<"lt">;
+def SETCC_LE_RR_P  : SETCC_RR_P<"le">;
+def SETCC_UGT_RR_P : SETCC_RR_P<"ugt">;
+def SETCC_UGE_RR_P : SETCC_RR_P<"uge">;
+def SETCC_ULT_RR_P : SETCC_RR_P<"ult">;
+def SETCC_ULE_RR_P : SETCC_RR_P<"ule">;
+
+def SETCC_EQ_RI_P  : SETCC_RI_P<"eq">;
+def SETCC_NE_RI_P  : SETCC_RI_P<"ne">;
+def SETCC_GT_RI_P  : SETCC_RI_P<"gt">;
+def SETCC_GE_RI_P  : SETCC_RI_P<"ge">;
+def SETCC_LT_RI_P  : SETCC_RI_P<"lt">;
+def SETCC_LE_RI_P  : SETCC_RI_P<"le">;
+def SETCC_UGT_RI_P : SETCC_RI_P<"ugt">;
+def SETCC_UGE_RI_P : SETCC_RI_P<"uge">;
+def SETCC_ULT_RI_P : SETCC_RI_P<"ult">;
+def SETCC_ULE_RI_P : SETCC_RI_P<"ule">;
+
+def F_SETCC_OEQ_RR_P : F_SETCC_RR_P<"oeq">;
+def F_SETCC_ONE_RR_P : F_SETCC_RR_P<"one">;
+def F_SETCC_OGT_RR_P : F_SETCC_RR_P<"ogt">;
+def F_SETCC_OGE_RR_P : F_SETCC_RR_P<"oge">;
+def F_SETCC_OLT_RR_P : F_SETCC_RR_P<"olt">;
+def F_SETCC_OLE_RR_P : F_SETCC_RR_P<"ole">;
+def F_SETCC_UEQ_RR_P : F_SETCC_RR_P<"ueq">;
+def F_SETCC_UNE_RR_P : F_SETCC_RR_P<"une">;
+def F_SETCC_UGT_RR_P : F_SETCC_RR_P<"ugt">;
+def F_SETCC_UGE_RR_P : F_SETCC_RR_P<"uge">;
+def F_SETCC_ULT_RR_P : F_SETCC_RR_P<"ult">;
+def F_SETCC_ULE_RR_P : F_SETCC_RR_P<"ule">;
+
+// int setcc ri patterns
+def : Pat<(seteq (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_EQ_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setne (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_NE_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setgt (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_GT_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setge (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_GE_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setlt (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_LT_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setle (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_LE_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setugt (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_UGT_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setuge (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_UGE_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setult (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_ULT_RI_P (i32 FR32:$A), (immU5:$B))>;
+def : Pat<(setule (i32 FR32:$A), (i32 immU5:$B)),
+          (SETCC_ULE_RI_P (i32 FR32:$A), (immU5:$B))>;
+
+// int setcc rr patterns
+def : Pat<(seteq (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_EQ_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setne (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_NE_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setgt (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_GT_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setge (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_GE_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setlt (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_LT_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setle (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_LE_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setugt (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_UGT_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setuge (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_UGE_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setult (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_ULT_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+def : Pat<(setule (i32 FR32:$A), (i32 FR32:$B)),
+          (SETCC_ULE_RR_P (i32 FR32:$A), (i32 FR32:$B))>;
+
+// float setcc rr patterns
+def : Pat<(setoeq (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_OEQ_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setone (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_ONE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setogt (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_OGT_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setoge (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_OGE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setolt (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_OLT_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setole (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_OLE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setueq (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_UEQ_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setune (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_UNE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setugt (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_UGT_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setuge (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_UGE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setult (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_ULT_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+def : Pat<(setule (i32 GR32:$A), (i32 GR32:$B)),
+          (F_SETCC_ULE_RR_P (i32 GR32:$A), (i32 GR32:$B))>;
+
+// int branch patterns
+def : Pat<(brcond (i32 (seteq (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_EQ_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setne (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_NE_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setgt (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_GT_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setge (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_GE_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setlt (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_LT_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setle (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_LE_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setugt (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_UGT_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setuge (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_UGE_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setult (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_ULT_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setule (i32 GR32:$lhs), (i32 GR32:$rhs))), bb:$dst),
+          (JMP_COMP_ULE_P (i32 GR32:$lhs), (i32 GR32:$rhs), bb:$dst)>;
+
+// float branch patterns
+def : Pat<(brcond (i32 (setoeq (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_OEQ_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setone (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_ONE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setogt (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_OGT_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setoge (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_OGE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setolt (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_OLT_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setole (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_OLE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setueq (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_UEQ_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setune (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_UNE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setugt (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_UGT_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setuge (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_UGE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setult (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_ULT_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+def : Pat<(brcond (i32 (setule (f32 GR32:$lhs), (f32 GR32:$rhs))), bb:$dst),
+          (JMP_FCOMP_ULE_P (f32 GR32:$lhs), (f32 GR32:$rhs), bb:$dst)>;
+
+// int selectcc patterns
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETEQ),
+          (SELECT_EQ_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETNE),
+          (SELECT_NE_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETGT),
+          (SELECT_GT_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETGE),
+          (SELECT_GE_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETLT),
+          (SELECT_LT_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETLE),
+          (SELECT_LE_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETUGT),
+          (SELECT_UGT_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETUGE),
+          (SELECT_UGE_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETULT),
+          (SELECT_ULT_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (i32 FR32:$T), (i32 FR32:$F), SETULE),
+          (SELECT_ULE_P (i32 FR32:$T), (i32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETEQ),
+          (FSELECT_EQ_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETNE),
+          (FSELECT_NE_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETGT),
+          (FSELECT_GT_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETGE),
+          (FSELECT_GE_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETLT),
+          (FSELECT_LT_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETLE),
+          (FSELECT_LE_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETUGT),
+          (FSELECT_UGT_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETUGE),
+          (FSELECT_UGE_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETULT),
+          (FSELECT_ULT_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+def : Pat<(selectcc (i32 FR32:$lhs), (i32 FR32:$rhs), (f32 FR32:$T), (f32 FR32:$F), SETULE),
+          (FSELECT_ULE_P (f32 FR32:$T), (f32 FR32:$F), (i32 FR32:$lhs), (i32 FR32:$rhs))>;
+
+// float selectcc patterns
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETOEQ),
+          (F_SELECT_OEQ_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETONE),
+          (F_SELECT_ONE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETOGT),
+          (F_SELECT_OGT_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETOGE),
+          (F_SELECT_OGE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETOLT),
+          (F_SELECT_OLT_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETOLE),
+          (F_SELECT_OLE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETUEQ),
+          (F_SELECT_UEQ_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETUNE),
+          (F_SELECT_UNE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETUGT),
+          (F_SELECT_UGT_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETUGE),
+          (F_SELECT_UGE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETULT),
+          (F_SELECT_ULT_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (i32 GR32:$T), (i32 GR32:$F), SETULE),
+          (F_SELECT_ULE_P (i32 GR32:$T), (i32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETOEQ),
+          (F_FSELECT_OEQ_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETONE),
+          (F_FSELECT_ONE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETOGT),
+          (F_FSELECT_OGT_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETOGE),
+          (F_FSELECT_OGE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETOLT),
+          (F_FSELECT_OLT_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETOLE),
+          (F_FSELECT_OLE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETUEQ),
+          (F_FSELECT_UEQ_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETUNE),
+          (F_FSELECT_UNE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETUGT),
+          (F_FSELECT_UGT_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETUGE),
+          (F_FSELECT_UGE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETULT),
+          (F_FSELECT_ULT_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+def : Pat<(selectcc (f32 GR32:$lhs), (f32 GR32:$rhs), (f32 GR32:$T), (f32 GR32:$F), SETULE),
+          (F_FSELECT_ULE_P (f32 GR32:$T), (f32 GR32:$F), (f32 GR32:$lhs), (f32 GR32:$rhs))>;
+
+/* --- Floating point arithmetic -------------------------------------------- */
+
+let isCommutable = 1 in {
+  def FADDrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+      	            "fadd\t{$rD, $rA, $rB}",
+	            [(set (f32 GR32:$rD), (fadd (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FMAXrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+		    "fmax\t{$rD, $rA, $rB}",
+		    [(set (f32 GR32:$rD), (fmaximum (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FMINrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+		    "fmin\t{$rD, $rA, $rB}",
+		    [(set (f32 GR32:$rD), (fminimum (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FMAXABSrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+		       "fmaxabs\t{$rD, $rA, $rB}",
+		       [(set (f32 GR32:$rD), (fmaximum (fabs (f32 GR32:$rA)), (fabs (f32 GR32:$rB))))]>;
+  def FMINABSrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+		       "fminabs\t{$rD, $rA, $rB}",
+		       [(set (f32 GR32:$rD), (fminimum (fabs (f32 GR32:$rA)), (fabs (f32 GR32:$rB))))]>;
+}
+
+let isCommutable = 0 in {
+  def FSUBrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+                    "fsub\t{$rD, $rA, $rB}",
+	            [(set (f32 GR32:$rD), (fsub (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FMULrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+   	   	    "fmul\t{$rD, $rA, $rB}",
+		    [(set (f32 GR32:$rD), (fmul (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FDIVrr : S32<(outs GR32:$rD), (ins GR32:$rA, GR32:$rB),
+      	            "fdiv\t{$rD, $rA, $rB}",
+	            [(set (f32 GR32:$rD), (fdiv (f32 GR32:$rA), (f32 GR32:$rB)))]>;
+  def FTOIrr : S32<(outs GR32:$rD), (ins GR32:$rA),
+        	    "ftoi\t{$rD, $rA}",
+		    [(set (i32 GR32:$rD), (fp_to_sint (f32 GR32:$rA)))]>;
+  def ITOFrr : S32<(outs GR32:$rD), (ins GR32:$rA),
+ 		    "itof\t{$rD, $rA}",
+		    [(set (f32 GR32:$rD), (sint_to_fp (i32 GR32:$rA)))]>;
+}
+
+// bitcast
+let Constraints = "$rD = $rA" in { 
+  def FTOICONV_P : VideoCore4Pseudo<(outs GR32:$rD), (ins GR32:$rA),
+    	                             "",
+	                             [(set (i32 GR32:$rD), (bitconvert (f32 GR32:$rA)))]>;
+  def ITOFCONV_P : VideoCore4Pseudo<(outs GR32:$rD), (ins GR32:$rA),
+                                     "",
+	                             [(set (f32 GR32:$rD), (bitconvert (i32 GR32:$rA)))]>;
+}
+
+def FLOG2 : S32<(outs GR32:$rD), (ins GR32:$rA),
+	         "log2\t{$rD, $rA}",
+	         [(set (f32 GR32:$rD), (flog2 (f32 GR32:$rA)))]>;
+		
+def FEXP2 : S32<(outs GR32:$rD), (ins GR32:$rA),
+	         "exp2\t{$rD, $rA}",
+	         [(set (f32 GR32:$rD), (fexp2 (f32 GR32:$rA)))]>;
+
+// recip
+def FRSQRT : S32<(outs GR32:$rD), (ins GR32:$rA),
+	          "rsqrt\t{$rD, $rA}",
+	          [(set (f32 GR32:$rD), (VCrsqrt (f32 GR32:$rA)))]>;
+def FRCP : S32<(outs GR32:$rD), (ins GR32:$rA),
+	        "rcp\t{$rD, $rA}",
+	        [(set (f32 GR32:$rD), (VCrcp (f32 GR32:$rA)))]>;
+def : Pat<(fabs (f32 GR32:$rA)),
+          (FMAXABSrr (f32 $rA), (FSUBrr (f32 TMP), (f32 TMP)))>;
+def : Pat<(fneg (f32 GR32:$rA)),
+          (FSUBrr (FSUBrr (f32 TMP), (f32 TMP)), (f32 $rA))>;
+def : Pat<(call tglobaladdr:$dst),
+          (CALL $dst)>;
+
+// population count
+def : Pat<(ctpop (i32 GR32:$ra)),
+          (COUNT_G (i32 $ra))>;
+
+// branch and link
+//def : Pat<(VideoCore4JmpLink (i32 LR)),
+//          (BR_LINK_G (i32 LR))>;
+
+// jmp32
+def : Pat<(br bb:$dst),
+          (JMP32 $dst)>;
+
+// i32 imm (should isel pseudo instr at firsr?)
+def : Pat<(i32 imm:$in),
+          (MOV_LI imm:$in)>;
+def : Pat<(i32 (bitconvert (f32 fpimm:$in))),
+          (MOV_LI (bitcast_fpimm_to_i32 f32:$in))>;
+def : Pat<(i32 (bitconvert (i32 imm:$in))),
+          (MOV_LI imm:$in)>;
+
+// instruction aliases
+def : InstAlias<"nop", (ADD_R_RI TMP, 0)>;

@@ -55,6 +55,7 @@ class ELFObjectFileBase : public ObjectFile {
   SubtargetFeatures getMIPSFeatures() const;
   SubtargetFeatures getARMFeatures() const;
   SubtargetFeatures getRISCVFeatures() const;
+  SubtargetFeatures getVideoCore4Features() const;
 
   StringRef getAMDGPUCPUName() const;
 
@@ -1202,6 +1203,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "elf32-sparc";
     case ELF::EM_AMDGPU:
       return "elf32-amdgpu";
+    case ELF::EM_VIDEOCORE:
+      return "elf32-videocore";
     default:
       return "elf32-unknown";
     }
@@ -1313,6 +1316,8 @@ template <class ELFT> Triple::ArchType ELFObjectFile<ELFT>::getArch() const {
     return Triple::ve;
   case ELF::EM_CSKY:
     return Triple::csky;
+  case ELF::EM_VIDEOCORE:
+    return Triple::videocore;
   default:
     return Triple::UnknownArch;
   }
