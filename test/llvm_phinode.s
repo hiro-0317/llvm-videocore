@@ -18,19 +18,19 @@ llvm_phinode:                           # @llvm_phinode
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
 	j	BB0_4                           # encoding: []
-	add	%r0, -1                         # encoding: [0x00,0x00]
+	add	%r0, %r0, -1                    # encoding: []
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
 	mov	%r4, 0                          # encoding: [0x00,0x00]
-	add	%r3, 2                          # encoding: [0x00,0x00]
+	add	%r3, %r3, 2                     # encoding: []
 	cmp	%r2, %r4                        # encoding: []
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 BB0_4:
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
 BB0_5:
-	add	%r3, %r1                        # encoding: [0x00,0x00]
+	add	%r3, %r3, %r1                   # encoding: []
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r0, %r3                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -105,7 +105,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -140,5 +140,5 @@ dst:
 	.space	32
 	.size	dst, 32
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git fa850fa4b45c11a3f4df7e48370277bb06861c36)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
 	.section	".note.GNU-stack","",@progbits

@@ -13,7 +13,7 @@ test_movx_1:                            # @test_movx_1
 	cmp	%r2, %r3                        # encoding: []
 	mov	%r0, 3                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	moveq	%r0, %r1                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -32,7 +32,7 @@ test_movx_2:                            # @test_movx_2
 	mov	%r3, 3                          # encoding: [0x00,0x00]
 	cmp	%r1, %r2                        # encoding: []
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -108,7 +108,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end4:
@@ -136,5 +136,5 @@ dst:
 	.space	16
 	.size	dst, 16
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git fa850fa4b45c11a3f4df7e48370277bb06861c36)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
 	.section	".note.GNU-stack","",@progbits

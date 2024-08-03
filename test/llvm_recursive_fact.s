@@ -15,7 +15,7 @@ _Z14recursive_facti:                    # @_Z14recursive_facti
 	mov	%r2, %r0                        # encoding: [0x00,0x00]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r1, %r0                        # encoding: [0x00,0x00]
-	add	%r2, -1                         # encoding: [0x00,0x00]
+	add	%r2, %r2, -1                    # encoding: []
 	mul	%r1, %r3                        # encoding: [0x00,0x00]
 	cmp	%r2, 0                          # encoding: []
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
@@ -45,7 +45,7 @@ main:                                   # @main
 	nop                                     # encoding: [0x01,0x00]
 BB1_1:                                  # =>This Inner Loop Header: Depth=1
 	mul	%r0, %r1                        # encoding: [0x00,0x00]
-	add	%r1, -1                         # encoding: [0x00,0x00]
+	add	%r1, %r1, -1                    # encoding: []
 	cmp	%r1, 0                          # encoding: []
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -76,5 +76,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git fa850fa4b45c11a3f4df7e48370277bb06861c36)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
 	.section	".note.GNU-stack","",@progbits

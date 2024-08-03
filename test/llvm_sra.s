@@ -11,20 +11,20 @@ _sra:                                   # @_sra
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:                                # %.preheader
-	add	%r0, 8                          # encoding: [0x00,0x00]
+	add	%r0, %r0, 8                     # encoding: []
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r2, %r0                        # encoding: [0x00,0x00]
-	add	%r2, -8                         # encoding: [0x00,0x00]
+	add	%r2, %r2, -8                    # encoding: []
 	ld	%r2, (%r2)                      # encoding: [0x00,0x00]
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
-	add	%r3, -4                         # encoding: [0x00,0x00]
+	add	%r3, %r3, -4                    # encoding: []
 	ld	%r3, (%r3)                      # encoding: [0x00,0x00]
 	asr	%r2, %r3                        # encoding: [0x00,0x00]
-	add	%r1, -1                         # encoding: [0x00,0x00]
+	add	%r1, %r1, -1                    # encoding: []
 	st	%r2, (%r0)                      # encoding: [0x00,0x00]
 	cmp	%r1, 0                          # encoding: []
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, 12                         # encoding: [0x00,0x00]
+	add	%r0, %r0, 12                    # encoding: []
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
@@ -50,7 +50,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -144,5 +144,5 @@ p:
 	.long	4294967295                      # 0xffffffff
 	.size	p, 324
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git fa850fa4b45c11a3f4df7e48370277bb06861c36)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
 	.section	".note.GNU-stack","",@progbits

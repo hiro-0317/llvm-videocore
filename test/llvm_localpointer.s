@@ -10,7 +10,7 @@ llvm_local_pointer:                     # @llvm_local_pointer
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -32,7 +32,7 @@ main:                                   # @main
 	lea	%r1, dst(%pc)                   # encoding: []
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x00,0x00]
+	add	%sp, %sp, 4                     # encoding: []
 	st	%r0, (%r1)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -46,5 +46,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git fa850fa4b45c11a3f4df7e48370277bb06861c36)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
 	.section	".note.GNU-stack","",@progbits
