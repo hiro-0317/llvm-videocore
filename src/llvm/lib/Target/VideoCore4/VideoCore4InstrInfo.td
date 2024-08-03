@@ -385,7 +385,7 @@ class VC4_3_OP6_S48_G<bits<6>        opcode,
 {
   let isReMaterializable = 1;
 }
-class VC4_3_OP5_S32_ACC_G<bits<5>        opcode,
+class VC4_2_OP5_S32_ACC_G<bits<5>        opcode,
                           string         instr_asm,
                           InstrItinClass itin = IIAlu> :
       S32_ARITH_IMM_ACC<opcode,
@@ -540,7 +540,7 @@ let isBranch=1, isTerminator=1, isBarrier=1 in {
   }
 }
 
-def ADD16I : VC4_3_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
+def ADD16I : VC4_2_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
 def ADD32I : VC4_3_OP6_S48_G     <0b111011, "add", IIAlu>;
 
 
