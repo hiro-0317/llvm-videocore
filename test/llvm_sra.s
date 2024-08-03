@@ -13,11 +13,9 @@ _sra:                                   # @_sra
 # %bb.1:                                # %.preheader
 	add	%r0, %r0, 8                     # encoding: []
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
-	mov	%r2, %r0                        # encoding: [0x00,0x00]
-	add	%r2, %r2, -8                    # encoding: []
+	add	%r2, %r0, -8                    # encoding: []
+	add	%r3, %r0, -4                    # encoding: []
 	ld	%r2, (%r2)                      # encoding: [0x00,0x00]
-	mov	%r3, %r0                        # encoding: [0x00,0x00]
-	add	%r3, %r3, -4                    # encoding: []
 	ld	%r3, (%r3)                      # encoding: [0x00,0x00]
 	asr	%r2, %r3                        # encoding: [0x00,0x00]
 	add	%r1, %r1, -1                    # encoding: []
@@ -144,5 +142,5 @@ p:
 	.long	4294967295                      # 0xffffffff
 	.size	p, 324
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
 	.section	".note.GNU-stack","",@progbits

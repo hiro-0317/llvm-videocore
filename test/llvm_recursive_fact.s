@@ -11,16 +11,15 @@ _Z14recursive_facti:                    # @_Z14recursive_facti
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:                                # %.preheader
-	mov	%r3, 1                          # encoding: [0x00,0x00]
-	mov	%r2, %r0                        # encoding: [0x00,0x00]
+	mov	%r2, 1                          # encoding: [0x00,0x00]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r1, %r0                        # encoding: [0x00,0x00]
-	add	%r2, %r2, -1                    # encoding: []
-	mul	%r1, %r3                        # encoding: [0x00,0x00]
-	cmp	%r2, 0                          # encoding: []
+	add	%r3, %r0, -1                    # encoding: []
+	mul	%r1, %r2                        # encoding: [0x00,0x00]
+	cmp	%r3, 0                          # encoding: []
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r3, %r1                        # encoding: [0x00,0x00]
-	mov	%r0, %r2                        # encoding: [0x00,0x00]
+	mov	%r2, %r1                        # encoding: [0x00,0x00]
+	mov	%r0, %r3                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
@@ -44,11 +43,11 @@ main:                                   # @main
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB1_1:                                  # =>This Inner Loop Header: Depth=1
+	add	%r2, %r1, -1                    # encoding: []
+	cmp	%r2, 0                          # encoding: []
 	mul	%r0, %r1                        # encoding: [0x00,0x00]
-	add	%r1, %r1, -1                    # encoding: []
-	cmp	%r1, 0                          # encoding: []
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
-	nop                                     # encoding: [0x01,0x00]
+	mov	%r1, %r2                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB1_2:
@@ -76,5 +75,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
 	.section	".note.GNU-stack","",@progbits

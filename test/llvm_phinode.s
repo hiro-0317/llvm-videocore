@@ -6,7 +6,7 @@
 llvm_phinode:                           # @llvm_phinode
 # %bb.0:
 	cmp	%r0, 0                          # encoding: []
-	beq	BB0_5                           # encoding: [0x00,0x00,0x00,0x00]
+	beq	BB0_4                           # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r3, 1                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -17,19 +17,19 @@ llvm_phinode:                           # @llvm_phinode
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
-	j	BB0_4                           # encoding: []
-	add	%r0, %r0, -1                    # encoding: []
+	add	%r3, %r0, -1                    # encoding: []
+BB0_4:
+	add	%r3, %r3, %r1                   # encoding: []
+	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
+	mov	%r0, %r3                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
-	mov	%r3, %r0                        # encoding: [0x00,0x00]
 	mov	%r4, 0                          # encoding: [0x00,0x00]
-	add	%r3, %r3, 2                     # encoding: []
+	add	%r3, %r0, 2                     # encoding: []
 	cmp	%r2, %r4                        # encoding: []
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
-BB0_4:
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
-BB0_5:
 	add	%r3, %r3, %r1                   # encoding: []
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r0, %r3                        # encoding: [0x00,0x00]
@@ -140,5 +140,5 @@ dst:
 	.space	32
 	.size	dst, 32
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
 	.section	".note.GNU-stack","",@progbits

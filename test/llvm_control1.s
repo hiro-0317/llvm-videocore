@@ -9,20 +9,19 @@ llvm_control1:                          # @llvm_control1
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r1, %r0                        # encoding: [0x00,0x00]
-	add	%r1, %r1, 5                     # encoding: []
+	add	%r1, %r0, 5                     # encoding: []
 	mov	%r2, 10                         # encoding: [0x00,0x00]
 	cmp	%r1, %r2                        # encoding: []
 	movugt	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
 	sub	%r2, %r0                        # encoding: [0x00,0x00]
-	add	%r2, %r2, -5                    # encoding: []
-	mov	%r1, 98                         # encoding: []
-	cmp	%r2, %r1                        # encoding: []
-	movult	%r1, %r2                        # encoding: [0x00,0x00,0x00,0x00]
-	add	%r1, %r1, %r0                   # encoding: []
-	mov	%r2, 5                          # encoding: [0x00,0x00]
-	mov	%r3, 51                         # encoding: []
+	add	%r1, %r2, -5                    # encoding: []
+	mov	%r2, 98                         # encoding: []
 	cmp	%r1, %r2                        # encoding: []
+	movult	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
+	add	%r2, %r2, %r0                   # encoding: []
+	mov	%r1, 5                          # encoding: [0x00,0x00]
+	mov	%r3, 51                         # encoding: []
+	cmp	%r2, %r1                        # encoding: []
 	mov	%r0, 40                         # encoding: []
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%sp, %sp, 4                     # encoding: []
@@ -61,5 +60,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
 	.section	".note.GNU-stack","",@progbits

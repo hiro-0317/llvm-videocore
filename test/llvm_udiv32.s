@@ -389,30 +389,30 @@ $func_end0:
 main:                                   # @main
 # %bb.0:
 	sub	%sp, 4                          # encoding: [0x00,0x00]
-	mov	%r2, 0                          # encoding: [0x00,0x00]
-	lea	%r3, z(%pc)                     # encoding: []
+	mov	%r5, 0                          # encoding: [0x00,0x00]
+	lea	%r2, z(%pc)                     # encoding: []
                                         #   fixup A - offset: 0, value: z, kind: fixup_VideoCore4_32
-	lea	%r5, d(%pc)                     # encoding: []
+	lea	%r4, d(%pc)                     # encoding: []
                                         #   fixup A - offset: 0, value: d, kind: fixup_VideoCore4_32
-	lea	%r4, q(%pc)                     # encoding: []
+	lea	%r3, q(%pc)                     # encoding: []
                                         #   fixup A - offset: 0, value: q, kind: fixup_VideoCore4_32
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 BB1_1:                                  # =>This Inner Loop Header: Depth=1
-	mov	%r0, %r2                        # encoding: [0x00,0x00]
-	add	%r0, %r0, %r3                   # encoding: []
-	mov	%r1, %r2                        # encoding: [0x00,0x00]
-	add	%r1, %r1, %r5                   # encoding: []
+	mov	%r0, %r5                        # encoding: [0x00,0x00]
+	add	%r0, %r0, %r2                   # encoding: []
+	mov	%r1, %r5                        # encoding: [0x00,0x00]
+	add	%r1, %r1, %r4                   # encoding: []
 	bl	udiv32                          # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r1, (%r1)                      # encoding: [0x00,0x00]
 	ld	%r0, (%r0)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
-	mov	%r1, %r2                        # encoding: [0x00,0x00]
-	add	%r1, %r1, %r4                   # encoding: []
-	add	%r2, %r2, 4                     # encoding: []
-	cmp	%r2, 4096                       # encoding: []
+	add	%r1, %r5, 4                     # encoding: []
+	add	%r5, %r5, %r3                   # encoding: []
+	st	%r0, (%r5)                      # encoding: [0x00,0x00]
+	cmp	%r1, 4096                       # encoding: []
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
-	st	%r0, (%r1)                      # encoding: [0x00,0x00]
+	mov	%r5, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
@@ -420,7 +420,7 @@ BB1_1:                                  # =>This Inner Loop Header: Depth=1
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%sp, %sp, 4                     # encoding: []
-	ld	%r0, (%r4)                      # encoding: [0x00,0x00]
+	ld	%r0, (%r3)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
 	.size	main, ($func_end1)-main
@@ -447,5 +447,5 @@ q:
 	.space	4096
 	.size	q, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ebc1c10f7d5b7e631c35550a14a9c66cf3131985)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
 	.section	".note.GNU-stack","",@progbits
