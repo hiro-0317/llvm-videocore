@@ -39,6 +39,7 @@ extern "C" void LLVMInitializeVideoCore4Target() {
   auto PR = PassRegistry::getPassRegistry();
   initializeVideoCore4BoolRetToIntPass(*PR);
   initializeVideoCore4PseudoFixupPass(*PR);
+  initializeVideoCore4PseudoFixupSecondPass(*PR);
   initializeVideoCore4DelJmpPass(*PR);
   initializeVideoCore4CFGOptimizerPass(*PR);
   initializeVideoCore4DelaySlotFillerPass(*PR);
@@ -223,11 +224,11 @@ void
 VideoCore4PassConfig::addPreEmitPass() {
   addPass(createVideoCore4CFGOptPass());
 
-#if 1
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
-#endif
+
+  addPass(createVideoCore4PseudoFixupPass());
 
   addPass(createVideoCore4DelaySlotFillerPass());
   return;

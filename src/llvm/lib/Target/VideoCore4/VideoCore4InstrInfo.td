@@ -411,8 +411,8 @@ class VC4_3_OP5_S32_ACC_G<bits<5>        opcode,
                           string         instr_asm,
                           InstrItinClass itin = IIAlu> :
       S32_ARITH_IMM_ACC<opcode,
-                        (outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
-	                !strconcat(instr_asm, "\t$rd, $ra, $imm"),
+                        (outs GR32:$rd), (ins i32imm:$imm),
+	                !strconcat(instr_asm, "\t$rd, $imm"),
                         [], itin>
 {
   let isReMaterializable = 1;
@@ -563,10 +563,7 @@ let isBranch=1, isTerminator=1, isBarrier=1 in {
   }
 }
 
-let Constraints = "$rd = $ra" in {
-  def ADD16I : VC4_3_OP5_S32_ACC_G <0b00000, "add", IIAlu>; // FIXME
-}
-
+def ADD16I : VC4_3_OP5_S32_ACC_G <0b00000, "add", IIAlu>; // FIXME
 def ADD32I : VC4_3_OP6_S48_G <0b111011, "add", IIAlu>;
 
 
@@ -902,8 +899,6 @@ multiclass ALU2_F_RI<string op2, string op3, PatFrag node> {
 /* --- ALU instructions ----------------------------------------------------- */
 def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
           (ADD_G (i32 GR32:$rA), (i32 GR32:$rB))>;
-def : Pat<(add (i32 GR32:$rA), immS16:$imm),
-          (ADD16I (i32 GR32:$rA), immS16:$imm)>;
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
           (ADD32I (i32 GR32:$rA), immS32:$imm)>;
 
