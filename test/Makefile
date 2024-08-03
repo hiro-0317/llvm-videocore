@@ -1,4 +1,4 @@
-VC4_DIR		:= ../
+VC4_DIR		:= ..
 BIN_DIR     := $(VC4_DIR)/build/bin
 
 CPP_FILES := $(wildcard *.cpp)
