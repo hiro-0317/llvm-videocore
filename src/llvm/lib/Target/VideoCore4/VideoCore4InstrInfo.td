@@ -450,13 +450,7 @@ def SWITCH     : VC4_SWITCH_G   <"switch",   IIAlu>;
 def VERSION    : VC4_VERSION_G  <"version",  IIAlu>;
 def SWIU       : VC4_SWI_U      <"swi",      IIAlu>;
 
-// operand(4) 2op
 
-
-let Defs = [SR] in {
-  def CMP_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
-  def CMP_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
-}
 
 // operand(6) 2op
 def COUNT_G : VC4_2_OP6_S16_G   <0b110000, "count", IIAlu>;
@@ -469,8 +463,13 @@ def ADD_G       : VC4_2_OP4_S16_G <0b0001, "add",       IIAlu>;
 def MUL_G       : VC4_2_OP4_S16_G <0b0010, "mul",       IIAlu>;
 def SUB_G       : VC4_2_OP4_S16_G <0b0011, "sub",       IIAlu>;
 def NOT_G       : VC4_2_OP4_S16_G <0b0100, "not",       IIAlu>;
-def BMASK_G     : VC4_2_OP4_S16_G <0b0111, "bmask",     IIAlu>;
+// operand(4) 2op
+let Defs = [SR] in {
+  def CMP_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
+  def CMP_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
+}
 def BTEST_G     : VC4_2_OP4_S16_G <0b0110, "btest",     IIAlu>;
+def BMASK_G     : VC4_2_OP4_S16_G <0b0111, "bmask",     IIAlu>;
 def BITSET_G    : VC4_2_OP4_S16_G <0b1000, "bitset",    IIAlu>;
 def BITCLEAR_G  : VC4_2_OP4_S16_G <0b1001, "bitclear",  IIAlu>;
 def BITFLIP_G   : VC4_2_OP4_S16_G <0b1010, "bitflip",   IIAlu>;
