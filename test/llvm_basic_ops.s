@@ -84,15 +84,13 @@ $func_end0:
 main:                                   # @main
 # %bb.0:
 	sub	%sp, 4                          # encoding: [0x00,0x00]
-	lea	%r0, res(%pc)                   # encoding: []
-                                        #   fixup A - offset: 0, value: res, kind: fixup_VideoCore4_32
+	lea	%r0, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	bl	test_basic_ops                  # encoding: [0x00,0x00,0x00,0x00]
+	mov	%r2, %r0                        # encoding: [0x00,0x00]
+	mov	%r1, %r0                        # encoding: [0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
-	lea	%r2, rhs(%pc)                   # encoding: []
-                                        #   fixup A - offset: 0, value: rhs, kind: fixup_VideoCore4_32
-	lea	%r1, lhs(%pc)                   # encoding: []
-                                        #   fixup A - offset: 0, value: lhs, kind: fixup_VideoCore4_32
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
@@ -102,27 +100,21 @@ main:                                   # @main
 $func_end1:
 	.size	main, ($func_end1)-main
                                         # -- End function
-	.type	lhs,@object                     # @lhs
+	.type	_MergedGlobals,@object          # @_MergedGlobals
 	.data
+	.p2align	2, 0x0
+_MergedGlobals:
+	.space	168
+	.size	_MergedGlobals, 168
+
 	.globl	lhs
-	.p2align	2, 0x0
-lhs:
-	.space	56
+.set lhs, _MergedGlobals
 	.size	lhs, 56
-
-	.type	rhs,@object                     # @rhs
 	.globl	rhs
-	.p2align	2, 0x0
-rhs:
-	.space	56
+.set rhs, _MergedGlobals+56
 	.size	rhs, 56
-
-	.type	res,@object                     # @res
 	.globl	res
-	.p2align	2, 0x0
-res:
-	.space	56
+.set res, _MergedGlobals+112
 	.size	res, 56
-
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits

@@ -43,11 +43,9 @@ $func_end1:
 	.type	test_movx_3,@function
 test_movx_3:                            # @test_movx_3
 # %bb.0:
-	lea	%r0, a(%pc)                     # encoding: []
-                                        #   fixup A - offset: 0, value: a, kind: fixup_VideoCore4_32
+	lea	%r0, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
-	lea	%r0, b(%pc)                     # encoding: []
-                                        #   fixup A - offset: 0, value: b, kind: fixup_VideoCore4_32
 	ld	%r2, (%r0)                      # encoding: [0x00,0x00]
 	mov	%r3, 1                          # encoding: [0x00,0x00]
 	cmp	%r1, %r2                        # encoding: []
@@ -64,8 +62,8 @@ $func_end2:
 	.type	test_movx_4,@function
 test_movx_4:                            # @test_movx_4
 # %bb.0:
-	lea	%r0, a(%pc)                     # encoding: []
-                                        #   fixup A - offset: 0, value: a, kind: fixup_VideoCore4_32
+	lea	%r0, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
 	mov	%r2, 0                          # encoding: [0x00,0x00]
 	mov	%r3, 3                          # encoding: [0x00,0x00]
@@ -114,27 +112,26 @@ main:                                   # @main
 $func_end4:
 	.size	main, ($func_end4)-main
                                         # -- End function
-	.type	a,@object                       # @a
-	.data
-	.globl	a
-	.p2align	2, 0x0
-a:
-	.long	1                               # 0x1
-	.size	a, 4
-
-	.type	b,@object                       # @b
-	.globl	b
-	.p2align	2, 0x0
-b:
-	.long	2                               # 0x2
-	.size	b, 4
-
 	.type	dst,@object                     # @dst
+	.data
 	.globl	dst
 	.p2align	2, 0x0
 dst:
 	.space	16
 	.size	dst, 16
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.type	_MergedGlobals,@object          # @_MergedGlobals
+	.p2align	2, 0x0
+_MergedGlobals:
+	.long	1                               # 0x1
+	.long	2                               # 0x2
+	.size	_MergedGlobals, 8
+
+	.globl	a
+.set a, _MergedGlobals
+	.size	a, 4
+	.globl	b
+.set b, _MergedGlobals+4
+	.size	b, 4
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits

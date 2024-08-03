@@ -39,48 +39,41 @@ $func_end0:
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	lea	%r0, src0(%pc)                  # encoding: []
-                                        #   fixup A - offset: 0, value: src0, kind: fixup_VideoCore4_32
-	lea	%r1, src1(%pc)                  # encoding: []
-                                        #   fixup A - offset: 0, value: src1, kind: fixup_VideoCore4_32
+	lea	%r2, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	sub	%sp, 4                          # encoding: [0x00,0x00]
+	ld	%r0, (%r2)                      # encoding: [0x00,0x00]
 	bl	gcd                             # encoding: [0x00,0x00,0x00,0x00]
+	mov	%r1, %r0                        # encoding: [0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
-	ld	%r1, (%r1)                      # encoding: [0x00,0x00]
-	ld	%r0, (%r0)                      # encoding: [0x00,0x00]
+	nop                                     # encoding: [0x01,0x00]
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
-	lea	%r1, dst(%pc)                   # encoding: []
-                                        #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%sp, %sp, 4                     # encoding: []
-	st	%r0, (%r1)                      # encoding: [0x00,0x00]
+	st	%r0, (%r2)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
 	.size	main, ($func_end1)-main
                                         # -- End function
-	.type	src0,@object                    # @src0
+	.type	_MergedGlobals,@object          # @_MergedGlobals
 	.data
-	.globl	src0
 	.p2align	2, 0x0
-src0:
+_MergedGlobals:
 	.long	1071                            # 0x42f
-	.size	src0, 4
-
-	.type	src1,@object                    # @src1
-	.globl	src1
-	.p2align	2, 0x0
-src1:
 	.long	1029                            # 0x405
-	.size	src1, 4
-
-	.type	dst,@object                     # @dst
-	.globl	dst
-	.p2align	2, 0x0
-dst:
 	.long	0                               # 0x0
-	.size	dst, 4
+	.size	_MergedGlobals, 12
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.globl	src0
+.set src0, _MergedGlobals
+	.size	src0, 4
+	.globl	src1
+.set src1, _MergedGlobals+4
+	.size	src1, 4
+	.globl	dst
+.set dst, _MergedGlobals+8
+	.size	dst, 4
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits

@@ -447,5 +447,5 @@ q:
 	.space	4096
 	.size	q, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits

@@ -151,16 +151,13 @@ main:                                   # @main
                                         # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
-	lea	%r0, len(%pc)                   # encoding: []
-                                        #   fixup A - offset: 0, value: len, kind: fixup_VideoCore4_32
-	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
+	lea	%r2, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	bl	crc32                           # encoding: [0x00,0x00,0x00,0x00]
 	lea	%r0, data(%pc)                  # encoding: []
                                         #   fixup A - offset: 0, value: data, kind: fixup_VideoCore4_32
+	ld	%r1, (%r2)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
-	nop                                     # encoding: [0x01,0x00]
-	lea	%r2, retval(%pc)                # encoding: []
-                                        #   fixup A - offset: 0, value: retval, kind: fixup_VideoCore4_32
 	mov	%r1, 0                          # encoding: [0x00,0x00]
 	st	%r0, (%r2)                      # encoding: [0x00,0x00]
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
@@ -187,19 +184,17 @@ data:
 	.space	4096
 	.size	data, 4096
 
-	.type	len,@object                     # @len
+	.type	_MergedGlobals,@object          # @_MergedGlobals
+	.p2align	2, 0x0
+_MergedGlobals:
+	.space	8
+	.size	_MergedGlobals, 8
+
 	.globl	len
-	.p2align	2, 0x0
-len:
-	.long	0                               # 0x0
+.set len, _MergedGlobals
 	.size	len, 4
-
-	.type	retval,@object                  # @retval
 	.globl	retval
-	.p2align	2, 0x0
-retval:
-	.long	0                               # 0x0
+.set retval, _MergedGlobals+4
 	.size	retval, 4
-
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits

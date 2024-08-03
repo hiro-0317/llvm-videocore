@@ -5,12 +5,8 @@
 	.type	assignment,@function
 assignment:                             # @assignment
 # %bb.0:
-	lea	%r0, data_signed(%pc)           # encoding: []
-                                        #   fixup A - offset: 0, value: data_signed, kind: fixup_VideoCore4_32
-	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
-	st	%r1, (%r0)                      # encoding: [0x00,0x00]
-	lea	%r0, data_unsigned(%pc)         # encoding: []
-                                        #   fixup A - offset: 0, value: data_unsigned, kind: fixup_VideoCore4_32
+	lea	%r0, _MergedGlobals(%pc)        # encoding: []
+                                        #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	st	%r1, (%r0)                      # encoding: [0x00,0x00]
@@ -39,11 +35,17 @@ main:                                   # @main
 $func_end1:
 	.size	main, ($func_end1)-main
                                         # -- End function
-	.type	data_signed,@object             # @data_signed
+	.type	_MergedGlobals,@object          # @_MergedGlobals
 	.data
-	.globl	data_signed
 	.p2align	2, 0x0
-data_signed:
+_MergedGlobals:
+	.space	8
+	.long	127                             # 0x7f
+	.long	0                               # 0x0
+	.long	255                             # 0xff
+	.long	0                               # 0x0
+	.long	65535                           # 0xffff
+	.long	0                               # 0x0
 	.long	4294967232                      # 0xffffffc0
 	.long	0                               # 0x0
 	.long	63                              # 0x3f
@@ -56,20 +58,13 @@ data_signed:
 	.long	0                               # 0x0
 	.long	32767                           # 0x7fff
 	.long	0                               # 0x0
-	.size	data_signed, 48
+	.size	_MergedGlobals, 80
 
-	.type	data_unsigned,@object           # @data_unsigned
 	.globl	data_unsigned
-	.p2align	2, 0x0
-data_unsigned:
-	.space	8
-	.long	127                             # 0x7f
-	.long	0                               # 0x0
-	.long	255                             # 0xff
-	.long	0                               # 0x0
-	.long	65535                           # 0xffff
-	.long	0                               # 0x0
+.set data_unsigned, _MergedGlobals
 	.size	data_unsigned, 32
-
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 61ca638a20edfde469649d6fe03b517dfe46de0a)"
+	.globl	data_signed
+.set data_signed, _MergedGlobals+32
+	.size	data_signed, 48
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
 	.section	".note.GNU-stack","",@progbits
