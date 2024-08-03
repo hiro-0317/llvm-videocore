@@ -123,6 +123,7 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 	  }
 	  if (isBlocked) break;
 	  if (MO.getReg() == def) {
+	    std::cout << "rewrite use" << std::endl;
 	    MO.setReg(use);
 	    mbbi       = MBBI;
 	    isModified = true;
@@ -134,6 +135,7 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 
       if (!vc4util::isLiveOutReg(&MBB, def) && isModified) {
 	if (mbbi == MBB.getLastNonDebugInstr()) {
+	  std::cout << "remove mi" << std::endl;
 	  MBB.erase(MI);
 	  return true;
 	}
@@ -150,6 +152,7 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 	    if (!mo_def.isReg()) continue;
 
 	    if (mo_def.getReg() == def) {
+	      std::cout << "remove mi" << std::endl;
 	      MBB.erase(MI);
 	      return true;
 	    }
@@ -158,6 +161,7 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 	  if (vc4util::isSchedulingBoundary(mbbi->getOpcode())) break;
 	  mbbi++;
 	  if (mbbi == MBB.getLastNonDebugInstr()) {
+	    std::cout << "remove mi" << std::endl;
 	    MBB.erase(MI);
 	    return true;
 	  }

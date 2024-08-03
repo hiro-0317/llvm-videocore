@@ -108,6 +108,8 @@ def immU16 : PatLeaf<(i32 imm), [{ return isUInt<16>(N->getZExtValue()); }]>;
 def immS16 : PatLeaf<(i32 imm), [{ return isInt<16>(N->getSExtValue()); }]>;
 // true if the immediate fits in a 32-bit signed field.
 def immS32 : PatLeaf<(i32 imm), [{ return isInt<32>(N->getSExtValue()); }]>;
+// true if the immediate fits in a 32-bit unsigned field.
+def immU32 : PatLeaf<(i32 imm), [{ return isInt<32>(N->getZExtValue()); }]>;
 
 def brtarget32 : Operand<OtherVT>;
 def brtarget23 : Operand<OtherVT>;
@@ -449,15 +451,12 @@ def VERSION    : VC4_VERSION_G  <"version",  IIAlu>;
 def SWIU       : VC4_SWI_U      <"swi",      IIAlu>;
 
 // operand(4) 2op
-def MOV_G : VC4_2_OP4_S16_G <0b0000, "mov", IIAlu>;
-def NOT_G : VC4_2_OP4_S16_G <0b0100, "not", IIAlu>;
+
 
 let Defs = [SR] in {
   def CMP_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
   def CMP_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
 }
-
-// operand(4) 2op
 
 // operand(6) 2op
 def COUNT_G : VC4_2_OP6_S16_G   <0b110000, "count", IIAlu>;
@@ -465,9 +464,11 @@ def COUNT_G : VC4_2_OP6_S16_G   <0b110000, "count", IIAlu>;
 def ADDSP_G : VC4_2_OP5_S16_IMM <0b00010,  "addsp", IIAlu>;
 
 // operand(4) 2op
+def MOV_G       : VC4_2_OP4_S16_G <0b0000, "mov",       IIAlu>;
 def ADD_G       : VC4_2_OP4_S16_G <0b0001, "add",       IIAlu>;
 def MUL_G       : VC4_2_OP4_S16_G <0b0010, "mul",       IIAlu>;
 def SUB_G       : VC4_2_OP4_S16_G <0b0011, "sub",       IIAlu>;
+def NOT_G       : VC4_2_OP4_S16_G <0b0100, "not",       IIAlu>;
 def BMASK_G     : VC4_2_OP4_S16_G <0b0111, "bmask",     IIAlu>;
 def BTEST_G     : VC4_2_OP4_S16_G <0b0110, "btest",     IIAlu>;
 def BITSET_G    : VC4_2_OP4_S16_G <0b1000, "bitset",    IIAlu>;
@@ -542,7 +543,6 @@ let isBranch=1, isTerminator=1, isBarrier=1 in {
 
 def ADD16I : VC4_2_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
 def ADD32I : VC4_3_OP6_S48_G     <0b111011, "add", IIAlu>;
-
 
 
 def FADD_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fadd.eq",  IIFpu>; // FIXME
