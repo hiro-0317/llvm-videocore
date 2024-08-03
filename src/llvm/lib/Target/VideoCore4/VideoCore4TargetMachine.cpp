@@ -228,7 +228,7 @@ VideoCore4PassConfig::addPreEmitPass() {
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
 
-  addPass(createVideoCore4PseudoFixupPass());
+  addPass(createVideoCore4PseudoFixupSecondPass());
 
   addPass(createVideoCore4DelaySlotFillerPass());
   return;

@@ -77,7 +77,7 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
     DebugLoc dl     = MI->getDebugLoc();
     unsigned Opcode = MI->getOpcode();
 
-    auto OPT_ADD = [&MBB, MI, TII, I, dl, &Changed](void) {
+    auto OPT_ADD_I = [&MBB, MI, TII, I, dl, &Changed](void) {
       Register reg1 = MI->getOperand(0).getReg();
       Register reg2 = MI->getOperand(1).getReg();
       int32_t  imm  = MI->getOperand(2).getImm();
@@ -91,8 +91,37 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       }
     };
 
+    auto OPT_ADD = [&MBB, MI, TII, I, dl, &Changed](void) {
+      Register reg1 = MI->getOperand(0).getReg();
+      Register reg2 = MI->getOperand(1).getReg();
+      Register reg3 = MI->getOperand(2).getReg();
+
+      MBB.erase(MI);
+
+      if (reg1 == reg2) {
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	  .addReg(reg3);
+      } else if (reg1 == reg3) {
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	  .addReg(reg2);
+      } else {
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), VideoCore4::TMP)
+	  .addReg(reg3);
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), VideoCore4::TMP)
+	  .addReg(reg2);
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
+	  .addReg(VideoCore4::TMP);
+      }
+      Changed = true;
+    };
+
     switch (Opcode) {
     case VideoCore4::ADD32I:
+      {
+	OPT_ADD_I();
+	break;
+      }
+    case VideoCore4::ADD_P:
       {
 	OPT_ADD();
 	break;
