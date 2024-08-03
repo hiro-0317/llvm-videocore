@@ -105,12 +105,10 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
 	  .addReg(reg2);
       } else {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), VideoCore4::TMP)
-	  .addReg(reg3);
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), VideoCore4::TMP)
-	  .addReg(reg2);
 	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
-	  .addReg(VideoCore4::TMP);
+	  .addReg(reg3);
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	  .addReg(reg2);
       }
       Changed = true;
     };
