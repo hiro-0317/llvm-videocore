@@ -1,5 +1,5 @@
-VC4_DIR		:= ../
-BIN_DIR     := $(VC4_DIR)/build/bin
+VC4_DIR		:= ..
+0;10;1cBIN_DIR     := $(VC4_DIR)/build/bin
 
 CPP_FILES := $(wildcard *.cpp)
 OUT_FILES := $(subst .cpp,.s,$(CPP_FILES))
