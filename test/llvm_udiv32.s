@@ -100,9 +100,8 @@ udiv32:                                 # @udiv32
 	movult	%r8, %r2                        # encoding: [0x00,0x00,0x00,0x00]
 	lsl	%r5, 24                         # encoding: [0x00,0x00]
 	sub	%r0, %r8                        # encoding: [0x00,0x00]
-	mov	%tmp, %r4                       # encoding: [0x00,0x00]
-	add	%tmp, %r5                       # encoding: [0x00,0x08]
-	mov	%r3, %tmp                       # encoding: [0x00,0x00]
+	mov	%r3, %r4                        # encoding: [0x00,0x00]
+	add	%r3, %r5                        # encoding: [0x00,0x08]
 	mov	%r4, %r0                        # encoding: [0x00,0x00]
 	lsr	%r4, 23                         # encoding: [0x00,0x00]
 	cmp	%r4, %r1                        # encoding: [0x00,0x28]
@@ -401,19 +400,16 @@ main:                                   # @main
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 BB1_1:                                  # =>This Inner Loop Header: Depth=1
-	mov	%tmp, %r3                       # encoding: [0x00,0x00]
-	add	%tmp, %r2                       # encoding: [0x00,0x08]
-	mov	%r0, %tmp                       # encoding: [0x00,0x00]
-	mov	%tmp, %r5                       # encoding: [0x00,0x00]
-	add	%tmp, %r2                       # encoding: [0x00,0x08]
-	mov	%r1, %tmp                       # encoding: [0x00,0x00]
+	mov	%r0, %r3                        # encoding: [0x00,0x00]
+	add	%r0, %r2                        # encoding: [0x00,0x08]
+	mov	%r1, %r5                        # encoding: [0x00,0x00]
+	add	%r1, %r2                        # encoding: [0x00,0x08]
 	bl	udiv32                          # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r1, (%r1)                      # encoding: [0x00,0x00]
 	ld	%r0, (%r0)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
-	mov	%tmp, %r4                       # encoding: [0x00,0x00]
-	add	%tmp, %r2                       # encoding: [0x00,0x08]
-	mov	%r1, %tmp                       # encoding: [0x00,0x00]
+	mov	%r1, %r4                        # encoding: [0x00,0x00]
+	add	%r1, %r2                        # encoding: [0x00,0x08]
 	add	%r2, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	cmp	%r2, 4096                       # encoding: []
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
@@ -452,5 +448,5 @@ q:
 	.space	4096
 	.size	q, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git e0dc036375c4c937bfefeee5a1e0007048118b99)"
 	.section	".note.GNU-stack","",@progbits

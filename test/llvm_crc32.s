@@ -124,9 +124,8 @@ BB1_4:                                  # =>This Inner Loop Header: Depth=1
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.5:                                #   in Loop: Header=BB1_4 Depth=1
-	mov	%tmp, %r3                       # encoding: [0x00,0x00]
-	add	%tmp, %r0                       # encoding: [0x00,0x08]
-	mov	%r5, %tmp                       # encoding: [0x00,0x00]
+	mov	%r5, %r3                        # encoding: [0x00,0x00]
+	add	%r5, %r0                        # encoding: [0x00,0x08]
 	j	BB1_6                           # encoding: []
 	ld	%r5, (%r5)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -197,5 +196,5 @@ _MergedGlobals:
 	.globl	retval
 .set retval, _MergedGlobals+4
 	.size	retval, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git e0dc036375c4c937bfefeee5a1e0007048118b99)"
 	.section	".note.GNU-stack","",@progbits

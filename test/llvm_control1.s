@@ -18,9 +18,8 @@ llvm_control1:                          # @llvm_control1
 	mov	%r2, 98                         # encoding: []
 	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	movult	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
-	mov	%tmp, %r2                       # encoding: [0x00,0x00]
-	add	%tmp, %r0                       # encoding: [0x00,0x08]
-	mov	%r1, %tmp                       # encoding: [0x00,0x00]
+	mov	%r1, %r2                        # encoding: [0x00,0x00]
+	add	%r1, %r0                        # encoding: [0x00,0x08]
 	mov	%r2, 5                          # encoding: [0x00,0x00]
 	mov	%r3, 51                         # encoding: []
 	cmp	%r1, %r2                        # encoding: [0x00,0x28]
@@ -62,5 +61,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git e0dc036375c4c937bfefeee5a1e0007048118b99)"
 	.section	".note.GNU-stack","",@progbits

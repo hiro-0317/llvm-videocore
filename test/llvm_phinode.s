@@ -18,10 +18,9 @@ llvm_phinode:                           # @llvm_phinode
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
 	add	%r3, %r0, -1                    # encoding: []
-	mov	%tmp, %r1                       # encoding: [0x00,0x00]
-	add	%tmp, %r3                       # encoding: [0x00,0x08]
+	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r0, %tmp                       # encoding: [0x00,0x00]
+	add	%r0, %r3                        # encoding: [0x00,0x08]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
@@ -31,10 +30,9 @@ BB0_3:
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
 BB0_4:
-	mov	%tmp, %r1                       # encoding: [0x00,0x00]
-	add	%tmp, %r3                       # encoding: [0x00,0x08]
+	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r0, %tmp                       # encoding: [0x00,0x00]
+	add	%r0, %r3                        # encoding: [0x00,0x08]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -126,5 +124,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+96
 	.size	dst, 32
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git e0dc036375c4c937bfefeee5a1e0007048118b99)"
 	.section	".note.GNU-stack","",@progbits
