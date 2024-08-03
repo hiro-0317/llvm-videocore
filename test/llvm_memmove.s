@@ -12,7 +12,7 @@ BB0_1:                                  # %copy_backwards_loop
                                         # =>This Inner Loop Header: Depth=1
 	ldb	%r2, (%r0, %r1)                 # encoding: [0x00,0x00,0x00,0x00]
 	stb	%r2, (%r0, %r1)                 # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, %r0, -1                    # encoding: []
+	add	%r0, -1                         # encoding: []
 	cmp	%r0, -992                       # encoding: []
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -35,5 +35,5 @@ dst:
 	.space	4092
 	.size	dst, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ed68c9e378c993fe9f15ff68aafbd7b041715036)"
 	.section	".note.GNU-stack","",@progbits

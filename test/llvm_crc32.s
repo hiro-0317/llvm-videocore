@@ -59,11 +59,11 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	cmp	%r3, %r0                        # encoding: []
 	eor	%r4, -306674912                 # encoding: [0x00,0x00]
 	moveq	%r4, %r5                        # encoding: [0x00,0x00,0x00,0x00]
-	add	%r2, %r2, 1                     # encoding: []
+	add	%r2, 1                          # encoding: []
 	st	%r4, (%r1)                      # encoding: [0x00,0x00]
 	cmp	%r2, 256                        # encoding: []
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r1, %r1, 4                     # encoding: []
+	add	%r1, 4                          # encoding: []
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
@@ -104,7 +104,7 @@ BB1_6:                                  #   in Loop: Header=BB1_4 Depth=1
 	and	%r9, 255                        # encoding: [0x00,0x00]
 	ld	%r8, (%r4, %r9)                 # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r9, %r2                        # encoding: [0x00,0x00]
-	add	%r3, %r3, 1                     # encoding: []
+	add	%r3, 1                          # encoding: []
 	cmp	%r1, %r3                        # encoding: []
 	lsr	%r9, 8                          # encoding: [0x00,0x00]
 	mov	%r2, %r8                        # encoding: [0x00,0x00]
@@ -124,8 +124,9 @@ BB1_4:                                  # =>This Inner Loop Header: Depth=1
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.5:                                #   in Loop: Header=BB1_4 Depth=1
-	mov	%r5, %r0                        # encoding: [0x00,0x00]
-	add	%r5, %r5, %r3                   # encoding: []
+	mov	%tmp, %r3                       # encoding: []
+	add	%tmp, %r0                       # encoding: []
+	mov	%r5, %tmp                       # encoding: []
 	j	BB1_6                           # encoding: []
 	ld	%r5, (%r5)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -163,7 +164,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, %sp, 4                     # encoding: []
+	add	%sp, 4                          # encoding: []
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end2:
@@ -196,5 +197,5 @@ _MergedGlobals:
 	.globl	retval
 .set retval, _MergedGlobals+4
 	.size	retval, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ed68c9e378c993fe9f15ff68aafbd7b041715036)"
 	.section	".note.GNU-stack","",@progbits

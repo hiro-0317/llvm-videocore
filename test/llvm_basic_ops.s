@@ -7,8 +7,8 @@ test_basic_ops:                         # @test_basic_ops
 # %bb.0:
 	ld	%r3, (%r1)                      # encoding: [0x00,0x00]
 	ld	%r4, (%r2)                      # encoding: [0x00,0x00]
-	add	%r4, %r4, %r3                   # encoding: []
-	st	%r4, (%r0)                      # encoding: [0x00,0x00]
+	add	%r3, %r4                        # encoding: []
+	st	%r3, (%r0)                      # encoding: [0x00,0x00]
 	ld	%r3, 4 (%r1)                    # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 4 (%r2)                    # encoding: [0x00,0x00,0x00,0x00]
 	sub	%r3, %r4                        # encoding: [0x00,0x00]
@@ -94,7 +94,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, %sp, 4                     # encoding: []
+	add	%sp, 4                          # encoding: []
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -116,5 +116,5 @@ _MergedGlobals:
 	.globl	res
 .set res, _MergedGlobals+112
 	.size	res, 56
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ed68c9e378c993fe9f15ff68aafbd7b041715036)"
 	.section	".note.GNU-stack","",@progbits

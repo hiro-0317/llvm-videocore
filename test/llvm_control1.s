@@ -18,13 +18,15 @@ llvm_control1:                          # @llvm_control1
 	mov	%r2, 98                         # encoding: []
 	cmp	%r1, %r2                        # encoding: []
 	movult	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
-	add	%r2, %r2, %r0                   # encoding: []
-	mov	%r1, 5                          # encoding: [0x00,0x00]
+	mov	%tmp, %r2                       # encoding: []
+	add	%tmp, %r0                       # encoding: []
+	mov	%r1, %tmp                       # encoding: []
+	mov	%r2, 5                          # encoding: [0x00,0x00]
 	mov	%r3, 51                         # encoding: []
-	cmp	%r2, %r1                        # encoding: []
+	cmp	%r1, %r2                        # encoding: []
 	mov	%r0, 40                         # encoding: []
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, %sp, 4                     # encoding: []
+	add	%sp, 4                          # encoding: []
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -46,7 +48,7 @@ main:                                   # @main
 	lea	%r1, dst(%pc)                   # encoding: []
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, %sp, 4                     # encoding: []
+	add	%sp, 4                          # encoding: []
 	st	%r0, (%r1)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -60,5 +62,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 3940490f1427ad624ec4acf4daee903fbc364e6a)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git ed68c9e378c993fe9f15ff68aafbd7b041715036)"
 	.section	".note.GNU-stack","",@progbits
