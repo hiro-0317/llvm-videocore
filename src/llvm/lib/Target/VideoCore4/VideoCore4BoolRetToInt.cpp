@@ -1,9 +1,8 @@
 //===- VideoCore4BoolRetToInt.cpp ------------------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 //
@@ -46,6 +45,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/OperandTraits.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Use.h"
@@ -60,8 +60,8 @@ using namespace llvm;
 
 namespace {
 
-#define DEBUG_TYPE "bool-ret-to-int"
 #define PASS_DESC  "Convert i1 constants to i32/i64 if they are returned"
+#define DEBUG_TYPE "bool-ret-to-int"
 
 class VideoCore4BoolRetToInt : public FunctionPass {
   static SmallPtrSet<Value *, 8> findAllDefs(Value *V) {
@@ -70,13 +70,12 @@ class VideoCore4BoolRetToInt : public FunctionPass {
     WorkList.push_back(V);
     Defs.insert(V);
     while (!WorkList.empty()) {
-      Value *Curr = WorkList.back();
-      WorkList.pop_back();
+      Value *Curr = WorkList.pop_back_val();
       auto *CurrUser = dyn_cast<User>(Curr);
-      // Operands of CallInst are skipped because they may not be Bool type,
-      // and their positions are defined by ABI.
-      if (CurrUser && !isa<CallInst>(Curr))
-	for (auto &Op : CurrUser->operands())
+      // Operands of CallInst/Constant are skipped because they may not be Bool
+      // type. For CallInst, their positions are defined by ABI.
+      if (CurrUser && !isa<CallInst>(Curr) && !isa<Constant>(Curr))
+        for (auto &Op : CurrUser->operands())
           if (Defs.insert(Op).second)
             WorkList.push_back(Op);
     }
@@ -85,10 +84,11 @@ class VideoCore4BoolRetToInt : public FunctionPass {
 
   // Translate a i1 value to an equivalent i32/i64 value:
   Value *translate(Value *V) {
+    assert(V->getType() == Type::getInt1Ty(V->getContext()) &&
+           "Expect an i1 value");
+
     Type *IntTy = Type::getInt32Ty(V->getContext());
 
-    if (auto *C = dyn_cast<Constant>(V))
-      return ConstantExpr::getZExt(C, IntTy);
     if (auto *P = dyn_cast<PHINode>(V)) {
       // Temporarily set the operands to 0. We'll fix this later in
       // runOnUse.
@@ -100,13 +100,12 @@ class VideoCore4BoolRetToInt : public FunctionPass {
       return Q;
     }
 
-    auto *A = dyn_cast<Argument>(V);
-    auto *I = dyn_cast<Instruction>(V);
-    assert((A || I) && "Unknown value type");
-
-    auto InstPt =
-      A ? &*A->getParent()->getEntryBlock().begin() : I->getNextNode();
-    return new ZExtInst(V, IntTy, "", InstPt);
+    IRBuilder IRB(V->getContext());
+    if (auto *I = dyn_cast<Instruction>(V))
+      IRB.SetInsertPoint(I->getNextNode());
+    else
+      IRB.SetInsertPoint(&Func->getEntryBlock(), Func->getEntryBlock().begin());
+    return IRB.CreateZExt(V, IntTy);
   }
 
   typedef SmallPtrSet<const PHINode *, 8> PHINodeSet;
@@ -132,14 +131,17 @@ class VideoCore4BoolRetToInt : public FunctionPass {
     for (const PHINode *P : Promotable) {
       // Condition 2 and 3
       auto IsValidUser = [] (const Value *V) -> bool {
-        return isa<ReturnInst>(V) || isa<CallInst>(V) || isa<PHINode>(V) || isa<DbgInfoIntrinsic>(V);
+        return isa<ReturnInst>(V) || isa<CallInst>(V) || isa<PHINode>(V) ||
+        isa<DbgInfoIntrinsic>(V);
       };
       auto IsValidOperand = [] (const Value *V) -> bool {
-        return isa<Constant>(V) || isa<Argument>(V) || isa<CallInst>(V) || isa<PHINode>(V);
+        return isa<Constant>(V) || isa<Argument>(V) || isa<CallInst>(V) ||
+        isa<PHINode>(V);
       };
-      const auto &Users    = P->users();
+      const auto &Users = P->users();
       const auto &Operands = P->operands();
-      if (!llvm::all_of(Users, IsValidUser) || !llvm::all_of(Operands, IsValidOperand))
+      if (!llvm::all_of(Users, IsValidUser) ||
+          !llvm::all_of(Operands, IsValidOperand))
         ToRemove.push_back(P);
     }
 
@@ -155,10 +157,11 @@ class VideoCore4BoolRetToInt : public FunctionPass {
 
       for (const PHINode *P : Promotable) {
         // Condition 4 and 5
-        const auto &Users    = P->users();
+        const auto &Users = P->users();
         const auto &Operands = P->operands();
-        if (!llvm::all_of(Users, IsPromotable) || !llvm::all_of(Operands, IsPromotable))
-	  ToRemove.push_back(P);
+        if (!llvm::all_of(Users, IsPromotable) ||
+            !llvm::all_of(Operands, IsPromotable))
+          ToRemove.push_back(P);
       }
     }
 
@@ -167,7 +170,7 @@ class VideoCore4BoolRetToInt : public FunctionPass {
 
   typedef DenseMap<Value *, Value *> B2IMap;
 
-public:
+ public:
   static char ID;
 
   VideoCore4BoolRetToInt() : FunctionPass(ID) {
@@ -175,13 +178,8 @@ public:
   }
 
   bool runOnFunction(Function &F) override {
-    if (skipFunction(F.getFunction())) {
+    if (skipFunction(F))
       return false;
-    }
-
-    LLVM_DEBUG(dbgs() << "== VideoCore4BoolRetToInt == ("
-	       << F.getName()
-	       << ")\n");
 
     auto *TPC = getAnalysisIfAvailable<TargetPassConfig>();
     if (!TPC)
@@ -189,15 +187,17 @@ public:
 
     auto &TM = TPC->getTM<VideoCore4TargetMachine>();
     ST = TM.getSubtargetImpl(F);
+    Func = &F;
 
     PHINodeSet PromotablePHINodes = getPromotablePHINodes(F);
-    B2IMap     Bool2IntMap;
-    bool       Changed = false;
+    B2IMap Bool2IntMap;
+    bool Changed = false;
     for (auto &BB : F) {
       for (auto &I : BB) {
         if (auto *R = dyn_cast<ReturnInst>(&I))
           if (F.getReturnType()->isIntegerTy(1))
-            Changed |= runOnUse(R->getOperandUse(0), PromotablePHINodes, Bool2IntMap);
+            Changed |=
+              runOnUse(R->getOperandUse(0), PromotablePHINodes, Bool2IntMap);
 
         if (auto *CI = dyn_cast<CallInst>(&I))
           for (auto &U : CI->operands())
@@ -209,9 +209,8 @@ public:
     return Changed;
   }
 
-  bool runOnUse(Use              &U,
-		const PHINodeSet &PromotablePHINodes,
-		B2IMap           &BoolToIntMap) {
+  bool runOnUse(Use &U, const PHINodeSet &PromotablePHINodes,
+                       B2IMap &BoolToIntMap) {
     auto Defs = findAllDefs(U);
 
     // If the values are all Constants or Arguments, don't bother
@@ -222,7 +221,8 @@ public:
     // CallInst. Potentially, bitwise operations (AND, OR, XOR, NOT) and sign
     // extension could also be handled in the future.
     for (Value *V : Defs)
-      if (!isa<PHINode>(V) && !isa<Constant>(V) && !isa<Argument>(V) && !isa<CallInst>(V))
+      if (!isa<PHINode>(V) && !isa<Constant>(V) &&
+          !isa<Argument>(V) && !isa<CallInst>(V))
         return false;
 
     for (Value *V : Defs)
@@ -237,19 +237,19 @@ public:
     // Replace the operands of the translated instructions. They were set to
     // zero in the translate function.
     for (auto &Pair : BoolToIntMap) {
-      auto *First  = dyn_cast<User>(Pair.first);
+      auto *First = dyn_cast<User>(Pair.first);
       auto *Second = dyn_cast<User>(Pair.second);
       assert((!First || Second) && "translated from user to non-user!?");
-      // Operands of CallInst are skipped because they may not be Bool type,
-      // and their positions are defined by ABI.
-      if (First && !isa<CallInst>(First))
+      // Operands of CallInst/Constant are skipped because they may not be Bool
+      // type. For CallInst, their positions are defined by ABI.
+      if (First && !isa<CallInst>(First) && !isa<Constant>(First))
         for (unsigned i = 0; i < First->getNumOperands(); ++i)
           Second->setOperand(i, BoolToIntMap[First->getOperand(i)]);
     }
 
-    Value *IntRetVal  = BoolToIntMap[U];
-    Type  *Int1Ty     = Type::getInt1Ty(U->getContext());
-    auto  *I          = cast<Instruction>(U.getUser());
+    Value *IntRetVal = BoolToIntMap[U];
+    Type *Int1Ty = Type::getInt1Ty(U->getContext());
+    auto *I = cast<Instruction>(U.getUser());
     Value *BackToBool = new TruncInst(IntRetVal, Int1Ty, "backToBool", I);
     U.set(BackToBool);
 
@@ -263,18 +263,20 @@ public:
 
 private:
   const VideoCore4Subtarget *ST;
+  Function *Func;
 };
 
 } // end anonymous namespace
 
 char VideoCore4BoolRetToInt::ID = 0;
 INITIALIZE_PASS(VideoCore4BoolRetToInt,
-		DEBUG_TYPE,
+                DEBUG_TYPE,
                 PASS_DESC,
                 false,
-		false)
+                false)
 
 FunctionPass*
 llvm::createVideoCore4BoolRetToIntPass() {
   return new VideoCore4BoolRetToInt();
 }
+

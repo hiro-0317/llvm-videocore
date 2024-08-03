@@ -85,7 +85,10 @@ VideoCore4LowerIntrinsics::expandMemIntrinsicUses(Function &F) {
       {
 	auto *Memmove = cast<MemMoveInst>(Inst);
 	if (shouldExpandOperationWithSize(Memmove->getLength())) {
-	  expandMemMoveAsLoop(Memmove);
+	  Function *ParentFunc = Memmove->getParent()->getParent();
+	  const TargetTransformInfo &TTI =
+            getAnalysis<TargetTransformInfoWrapperPass>().getTTI(*ParentFunc);
+	  expandMemMoveAsLoop(Memmove, TTI);
 	  Changed = true;
 	  Memmove->eraseFromParent();
 	}

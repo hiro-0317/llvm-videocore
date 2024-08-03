@@ -641,9 +641,12 @@ static void getWebAssemblyTargetFeatures(const Driver &D,
                             options::OPT_m_wasm_Features_Group);
 }
 
-static void getVideoCore4TargetFeatures(const ArgList          &Args,
-                                        std::vector<StringRef> &Features) {
-  handleTargetFeaturesGroup(Args, Features, options::OPT_m_videocore_Features_Group);
+static void getVideoCore4TargetFeatures(const Driver           &D,
+					const llvm::Triple     &Triple,
+					const ArgList          &Args,
+					std::vector<StringRef> &Features) {
+  handleTargetFeaturesGroup(D, Triple, Args, Features,
+			    options::OPT_m_videocore_Features_Group);
 }
 
 void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
@@ -724,7 +727,7 @@ void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
     loongarch::getLoongArchTargetFeatures(D, Triple, Args, Features);
     break;
   case llvm::Triple::videocore:
-    getVideoCore4TargetFeatures(Args, Features);
+    getVideoCore4TargetFeatures(D, Triple, Args, Features);
     break;
   }
 

@@ -50,7 +50,7 @@ extern "C" void LLVMInitializeVideoCore4Target() {
 static Reloc::Model
 getEffectiveRelocModel(bool                        isJIT,
                        std::optional<Reloc::Model> RM) {
-  if (!RM.hasValue() || isJIT) {
+  if (!RM.has_value() || isJIT) {
     return Reloc::Static;
   }
   return *RM;
@@ -129,7 +129,7 @@ public:
 } // namespace
 
 TargetTransformInfo
-VideoCore4TargetMachine::getTargetTransformInfo(const Function &F) {
+VideoCore4TargetMachine::getTargetTransformInfo(const Function &F) const {
   return TargetTransformInfo(VideoCore4TTIImpl(this, F));
 }
 

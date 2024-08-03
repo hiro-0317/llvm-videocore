@@ -412,13 +412,14 @@ VideoCore4TargetLowering::LowerCCCArguments(SDValue                             
       VideoCore4::R0, VideoCore4::R1, VideoCore4::R2, VideoCore4::R3,
       VideoCore4::R4, VideoCore4::R5
     };
+    const int ArgNum = 6;
     VideoCore4MachineFunctionInfo *XFI        = MF.getInfo<VideoCore4MachineFunctionInfo>();
     unsigned                       FirstVAReg = CCInfo.getFirstUnallocated(ArgRegs);
-    if (FirstVAReg < array_lengthof(ArgRegs)) {
+    if (FirstVAReg < ArgNum) {
       int offset = 0;
       // Save remaining registers, storing higher register numbers at a higher
       // address
-      for (int i = array_lengthof(ArgRegs) - 1; i >= (int)FirstVAReg; --i) {
+      for (int i = ArgNum - 1; i >= (int)FirstVAReg; --i) {
 	// Create a stack slot
 	int FI = MFI.CreateFixedObject(4,
 				       offset,
@@ -445,8 +446,7 @@ VideoCore4TargetLowering::LowerCCCArguments(SDValue                             
 	MemOps.push_back(Store);
       }
     } else {
-      // This will point to the next argument passed via stack.
-      XFI->VarArgsFrameIndex = MFI.CreateFixedObject(4, LRSaveSize + CCInfo.getNextStackOffset(), true);
+      XFI->VarArgsFrameIndex = MFI.CreateFixedObject(4, LRSaveSize + CCInfo.getStackSize(), true);
     }
   }
 
@@ -657,11 +657,11 @@ VideoCore4TargetLowering::LowerCCCCallTo(SDValue                                
 		    DAG.getMachineFunction(),
 		    RVLocs,
 		    *DAG.getContext());
-  RetCCInfo.AllocateStack(CCInfo.getNextStackOffset(), Align(4));
+  RetCCInfo.AllocateStack(CCInfo.getStackSize(), Align(4));
   RetCCInfo.AnalyzeCallResult(Ins, RetCC_VideoCore4);
 
   // Get a count of how many bytes are to be pushed on the stack.
-  unsigned NumBytes = RetCCInfo.getNextStackOffset();
+  unsigned NumBytes = RetCCInfo.getStackSize();
 
   Chain = DAG.getCALLSEQ_START(Chain,
 			       NumBytes,

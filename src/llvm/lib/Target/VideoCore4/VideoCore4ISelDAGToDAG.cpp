@@ -42,8 +42,9 @@ namespace {
   class VideoCore4DAGToDAGISel : public SelectionDAGISel {
 
   public:
+  static char ID;
     VideoCore4DAGToDAGISel(VideoCore4TargetMachine &TM, CodeGenOptLevel OptLevel)
-      : SelectionDAGISel(TM, OptLevel) {}
+      : SelectionDAGISel(ID, TM, OptLevel) {}
     
     virtual StringRef getPassName() const override {
       return PASS_DESC;
@@ -204,3 +205,5 @@ VideoCore4DAGToDAGISel::SelectStacked(SDValue  addr,
   
   return false;
 }
+
+char VideoCore4DAGToDAGISel::ID = 0;
