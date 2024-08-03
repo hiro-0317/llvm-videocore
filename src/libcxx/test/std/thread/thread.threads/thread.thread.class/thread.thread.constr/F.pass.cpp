@@ -12,14 +12,8 @@
 
 // template <class F, class ...Args> thread(F&& f, Args&&... args);
 
-// UNSUPPORTED: libcpp-has-no-threads
+// UNSUPPORTED: no-threads
 // UNSUPPORTED: sanitizer-new-delete
-
-// This fails on MinGW when statically linked, if built with Clang 13 or older.
-// (It's fixed in the upcoming Clang 14, by https://reviews.llvm.org/D109651.)
-// Prior to the fix, when statically linked, the unwind info for the two
-// (default and overridden) operator new implementations clash.
-// UNSUPPORTED: target={{.+}}-windows-gnu && !windows-dll && clang-13
 
 #include <thread>
 #include <new>
@@ -42,7 +36,9 @@ void* operator new(std::size_t s) TEST_THROW_SPEC(std::bad_alloc)
     } while (!throw_one.compare_exchange_weak(expected, expected - 1));
     ++outstanding_new;
     void* ret = std::malloc(s);
-    if (!ret) std::abort(); // placate MSVC's unchecked malloc warning
+    if (!ret) {
+      std::abort(); // placate MSVC's unchecked malloc warning (assert() won't silence it)
+    }
     return ret;
 }
 

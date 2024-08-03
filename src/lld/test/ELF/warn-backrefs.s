@@ -77,7 +77,7 @@
 # RUN: llvm-ar rcs %tcomm.a %tcomm.o
 # RUN: llvm-ar rcs %tstrong.a %tstrong.o
 # RUN: ld.lld --warn-backrefs %tcomm.a %t1.o %t5.o 2>&1 -o /dev/null | FileCheck --check-prefix=COMM %s
-# RUN: ld.lld --fatal-warnings --warn-backrefs %tcomm.a %t1.o %t5.o %tstrong.a 2>&1 -o /dev/null
+# RUN: ld.lld --fatal-warnings --fortran-common --warn-backrefs %tcomm.a %t1.o %t5.o %tstrong.a 2>&1 -o /dev/null
 # RUN: ld.lld --warn-backrefs --no-fortran-common %tcomm.a %t1.o %t5.o %tstrong.a 2>&1 -o /dev/null | FileCheck --check-prefix=COMM %s
 
 # COMM: ld.lld: warning: backward reference detected: obj in {{.*}}5.o refers to {{.*}}comm.a
@@ -100,8 +100,12 @@
 ## -u does not make a backward reference.
 # RUN: ld.lld --fatal-warnings --warn-backrefs -u foo %t2.a %t1.o -o /dev/null
 
+## --defsym does not make a backward reference, but it does not suppress the warning due to another file.
+# RUN: ld.lld --fatal-warnings --warn-backrefs --defsym=x=foo -e 0 %t2.a -o /dev/null
+# RUN: ld.lld --warn-backrefs --defsym=x=foo %t2.a %t1.o -o /dev/null 2>&1 | FileCheck %s
+
 # RUN: not ld.lld --warn-backrefs-exclude='[' 2>&1 | FileCheck --check-prefix=INVALID %s
-# INVALID: error: --warn-backrefs-exclude: invalid glob pattern: [
+# INVALID: error: --warn-backrefs-exclude: invalid glob pattern, unmatched '[': [
 
 .globl _start, foo
 _start:

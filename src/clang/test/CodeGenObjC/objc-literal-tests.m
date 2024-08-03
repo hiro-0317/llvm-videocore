@@ -1,6 +1,5 @@
 // RUN: %clang_cc1 -x objective-c -triple x86_64-apple-darwin10 -fblocks -emit-llvm %s -o - | FileCheck %s
 // RUN: %clang_cc1 -x objective-c++ -triple x86_64-apple-darwin10 -fblocks -emit-llvm %s -o - | FileCheck %s
-// rdar://10111397
 
 #if __has_feature(objc_bool)
 #define YES __objc_yes
@@ -51,10 +50,10 @@ typedef signed char BOOL;
 @end
 #endif
 
-id NSUserName();
+id NSUserName(void);
 
 // CHECK: define{{.*}} i32 @main() [[NUW:#[0-9]+]]
-int main() {
+int main(void) {
   // CHECK: call{{.*}}@objc_msgSend{{.*}}i8 noundef signext 97
   NSNumber *aNumber = @'a';
   // CHECK: call{{.*}}@objc_msgSend{{.*}}i32 noundef 42
@@ -86,7 +85,6 @@ NSDictionary *dictionary = @{@"name" : NSUserName(),
   return __objc_yes == __objc_no;
 }
 
-// rdar://10579122
 typedef BOOL (^foo)(void);
 extern void bar(foo a);
 

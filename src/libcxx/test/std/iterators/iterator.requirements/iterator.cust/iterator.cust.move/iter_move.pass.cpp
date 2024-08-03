@@ -7,16 +7,15 @@
 //===----------------------------------------------------------------------===//
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
-// UNSUPPORTED: libcpp-no-concepts
 
 // template<class I>
 // unspecified iter_move;
 
-#include <iterator>
-
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <iterator>
+#include <type_traits>
 #include <utility>
 
 #include "../unqualified_lookup_wrapper.h"
@@ -51,8 +50,11 @@ private:
   I base_ = I{};
 };
 
-template <typename I>
-constexpr void unqualified_lookup_move(I first_, I last_, I result_first_, I result_last_) {
+template <class I>
+iterator_wrapper(I) -> iterator_wrapper<I>;
+
+template <typename It, typename Out>
+constexpr void unqualified_lookup_move(It first_, It last_, Out result_first_, Out result_last_) {
   auto first = ::check_unqualified_lookup::unqualified_lookup_wrapper{std::move(first_)};
   auto last = ::check_unqualified_lookup::unqualified_lookup_wrapper{std::move(last_)};
   auto result_first = ::check_unqualified_lookup::unqualified_lookup_wrapper{std::move(result_first_)};
@@ -65,8 +67,8 @@ constexpr void unqualified_lookup_move(I first_, I last_, I result_first_, I res
   }
 }
 
-template <typename I>
-constexpr void lvalue_move(I first_, I last_, I result_first_, I result_last_) {
+template <typename It, typename Out>
+constexpr void lvalue_move(It first_, It last_, Out result_first_, Out result_last_) {
   auto first = iterator_wrapper{std::move(first_)};
   auto last = ::iterator_wrapper{std::move(last_)};
   auto result_first = iterator_wrapper{std::move(result_first_)};
@@ -80,8 +82,8 @@ constexpr void lvalue_move(I first_, I last_, I result_first_, I result_last_) {
   }
 }
 
-template <typename I>
-constexpr void rvalue_move(I first_, I last_, I result_first_, I result_last_) {
+template <typename It, typename Out>
+constexpr void rvalue_move(It first_, It last_, Out result_first_, Out result_last_) {
   auto first = iterator_wrapper{std::move(first_)};
   auto last = iterator_wrapper{std::move(last_)};
   auto result_first = iterator_wrapper{std::move(result_first_)};
@@ -156,15 +158,15 @@ constexpr bool test() {
 
   auto unscoped = check_unqualified_lookup::unscoped_enum::a;
   assert(std::ranges::iter_move(unscoped) == check_unqualified_lookup::unscoped_enum::a);
-  assert(!noexcept(std::ranges::iter_move(unscoped)));
+  static_assert(!noexcept(std::ranges::iter_move(unscoped)));
 
   auto scoped = check_unqualified_lookup::scoped_enum::a;
   assert(std::ranges::iter_move(scoped) == nullptr);
-  assert(noexcept(std::ranges::iter_move(scoped)));
+  static_assert(noexcept(std::ranges::iter_move(scoped)));
 
   auto some_union = check_unqualified_lookup::some_union{0};
   assert(std::ranges::iter_move(some_union) == 0);
-  assert(!noexcept(std::ranges::iter_move(some_union)));
+  static_assert(!noexcept(std::ranges::iter_move(some_union)));
 
   // Check noexcept-correctness
   static_assert(noexcept(std::ranges::iter_move(std::declval<WithADL<true>>())));

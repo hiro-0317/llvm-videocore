@@ -13,6 +13,7 @@
 
 #include "bolt/Passes/PatchEntries.h"
 #include "bolt/Utils/NameResolver.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Support/CommandLine.h"
 
 namespace opts {
@@ -22,13 +23,9 @@ extern llvm::cl::OptionCategory BoltCategory;
 extern llvm::cl::opt<unsigned> Verbosity;
 
 llvm::cl::opt<bool>
-ForcePatch("force-patch",
-  llvm::cl::desc("force patching of original entry points"),
-  llvm::cl::init(false),
-  llvm::cl::Hidden,
-  llvm::cl::ZeroOrMore,
-  llvm::cl::cat(BoltCategory));
-
+    ForcePatch("force-patch",
+               llvm::cl::desc("force patching of original entry points"),
+               llvm::cl::Hidden, llvm::cl::cat(BoltCategory));
 }
 
 namespace llvm {
@@ -38,14 +35,11 @@ void PatchEntries::runOnFunctions(BinaryContext &BC) {
   if (!opts::ForcePatch) {
     // Mark the binary for patching if we did not create external references
     // for original code in any of functions we are not going to emit.
-    bool NeedsPatching = false;
-    for (auto &BFI : BC.getBinaryFunctions()) {
-      BinaryFunction &Function = BFI.second;
-      if (!BC.shouldEmit(Function) && !Function.hasExternalRefRelocations()) {
-        NeedsPatching = true;
-        break;
-      }
-    }
+    bool NeedsPatching = llvm::any_of(
+        llvm::make_second_range(BC.getBinaryFunctions()),
+        [&](BinaryFunction &BF) {
+          return !BC.shouldEmit(BF) && !BF.hasExternalRefRelocations();
+        });
 
     if (!NeedsPatching)
       return;
@@ -104,6 +98,17 @@ void PatchEntries::runOnFunctions(BinaryContext &BC) {
     });
 
     if (!Success) {
+      // We can't change output layout for AArch64 due to LongJmp pass
+      if (BC.isAArch64()) {
+        if (opts::ForcePatch) {
+          errs() << "BOLT-ERROR: unable to patch entries in " << Function
+                 << "\n";
+          exit(1);
+        }
+
+        continue;
+      }
+
       // If the original function entries cannot be patched, then we cannot
       // safely emit new function body.
       errs() << "BOLT-WARNING: failed to patch entries in " << Function
@@ -122,7 +127,7 @@ void PatchEntries::runOnFunctions(BinaryContext &BC) {
 
       InstructionListType Seq;
       BC.MIB->createLongTailCall(Seq, Patch.Symbol, BC.Ctx.get());
-      PatchFunction->addBasicBlock(0)->addInstructions(Seq);
+      PatchFunction->addBasicBlock()->addInstructions(Seq);
 
       // Verify the size requirements.
       uint64_t HotSize, ColdSize;

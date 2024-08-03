@@ -1,6 +1,10 @@
 name: LLD Tests
 
+permissions:
+  contents: read
+
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'release/**'
@@ -10,6 +14,8 @@ on:
       - '.github/workflows/llvm-project-tests.yml'
       - '!llvm/**'
   pull_request:
+    branches:
+      - 'release/**'
     paths:
       - 'lld/**'
       - '.github/workflows/lld-tests.yml'
@@ -24,8 +30,9 @@ concurrency:
 
 jobs:
   check_lld:
+    if: github.repository_owner == 'llvm'
     name: Test lld
-    uses: llvm/llvm-project/.github/workflows/llvm-project-tests.yml@release/14.x
+    uses: ./.github/workflows/llvm-project-tests.yml
     with:
       build_target: check-lld
       projects: lld

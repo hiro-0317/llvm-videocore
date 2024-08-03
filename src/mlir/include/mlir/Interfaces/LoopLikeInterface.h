@@ -15,20 +15,23 @@
 
 #include "mlir/IR/OpDefinition.h"
 
-//===----------------------------------------------------------------------===//
-// LoopLike Interfaces
-//===----------------------------------------------------------------------===//
+namespace mlir {
+class RewriterBase;
+
+/// A function that returns the additional yielded values during
+/// `replaceWithAdditionalYields`. `newBbArgs` are the newly added region
+/// iter_args. This function should return as many values as there are block
+/// arguments in `newBbArgs`.
+using NewYieldValuesFn = std::function<SmallVector<Value>(
+    OpBuilder &b, Location loc, ArrayRef<BlockArgument> newBbArgs)>;
+
+namespace detail {
+/// Verify invariants of the LoopLikeOpInterface.
+LogicalResult verifyLoopLikeOpInterface(Operation *op);
+} // namespace detail
+} // namespace mlir
 
 /// Include the generated interface declarations.
 #include "mlir/Interfaces/LoopLikeInterface.h.inc"
-
-//===----------------------------------------------------------------------===//
-// LoopLike Utilities
-//===----------------------------------------------------------------------===//
-
-namespace mlir {
-/// Move loop invariant code out of a `looplike` operation.
-LogicalResult moveLoopInvariantCode(LoopLikeOpInterface looplike);
-} // namespace mlir
 
 #endif // MLIR_INTERFACES_LOOPLIKEINTERFACE_H_
