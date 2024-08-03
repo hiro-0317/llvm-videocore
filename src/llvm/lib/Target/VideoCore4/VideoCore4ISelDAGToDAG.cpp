@@ -118,7 +118,7 @@ void VideoCore4DAGToDAGISel::Select(SDNode *N) {
       assert(VT == MVT::i32);
       
       SDValue  TFI = CurDAG->getTargetFrameIndex(FI, VT);
-      unsigned Opc = VideoCore4::ADD32I;
+      unsigned Opc = VideoCore4::ADD32I_G;
       
       SDNode* res;
       if (N->hasOneUse()) {

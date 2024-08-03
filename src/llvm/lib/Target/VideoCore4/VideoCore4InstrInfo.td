@@ -463,7 +463,6 @@ def ADD_G       : VC4_2_OP4_S16_G <0b0001, "add",       IIAlu>;
 def MUL_G       : VC4_2_OP4_S16_G <0b0010, "mul",       IIAlu>;
 def SUB_G       : VC4_2_OP4_S16_G <0b0011, "sub",       IIAlu>;
 def NOT_G       : VC4_2_OP4_S16_G <0b0100, "not",       IIAlu>;
-// operand(4) 2op
 let Defs = [SR] in {
   def CMP_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
   def CMP_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
@@ -540,8 +539,8 @@ let isBranch=1, isTerminator=1, isBarrier=1 in {
   }
 }
 
-def ADD16I : VC4_2_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
-def ADD32I : VC4_3_OP6_S48_G     <0b111011, "add", IIAlu>;
+def ADD16I_G : VC4_2_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
+def ADD32I_G : VC4_3_OP6_S48_G     <0b111011, "add", IIAlu>;
 
 
 def FADD_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fadd.eq",  IIFpu>; // FIXME
@@ -879,7 +878,7 @@ def ADD_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
 def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
           (ADD_P (i32 GR32:$rA), (i32 GR32:$rB))>;
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
-          (ADD32I (i32 GR32:$rA), immS32:$imm)>;
+          (ADD32I_G (i32 GR32:$rA), immS32:$imm)>;
 
 defm ADD_3_LONG : ALU2_REG_REG_IMM<"add\t$D, $A, $B",
 		                   GR32,
