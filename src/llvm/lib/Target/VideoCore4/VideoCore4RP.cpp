@@ -115,6 +115,13 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 
 	for (auto &MO : MBBI->uses()) {
 	  if (!MO.isReg()) continue;
+	  for (const auto &MO_Def : MBBI->defs()) {
+	    if (MO_Def.isReg()) continue;
+	    if (MO_Def.getReg() == MO.getReg()) {
+	      isBlocked = true; break;
+	    }
+	  }
+	  if (isBlocked) break;
 	  if (MO.getReg() == def) {
 	    MO.setReg(use);
 	    mbbi       = MBBI;

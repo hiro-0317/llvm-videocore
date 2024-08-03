@@ -223,7 +223,7 @@ void
 VideoCore4PassConfig::addPreEmitPass() {
   addPass(createVideoCore4CFGOptPass());
 
-#if 0
+#if 1
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
   addPass(createVideoCore4RPPass());
