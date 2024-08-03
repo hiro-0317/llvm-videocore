@@ -126,7 +126,7 @@ VideoCore4InstrInfo::adjustStackPtr(int64_t                     amount,
       .addReg(VideoCore4::SP)
       .addImm(-amount);
   } else if (amount > 0) {
-    BuildMI(MBB, I, DL, get(VideoCore4::ADD_F_RI), VideoCore4::SP)
+    BuildMI(MBB, I, DL, get(VideoCore4::ADD32I), VideoCore4::SP)
       .addReg(VideoCore4::SP)
       .addImm(amount);
   } else {

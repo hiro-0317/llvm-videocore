@@ -104,6 +104,10 @@ def immU6 : PatLeaf<(i32 imm), [{ return isUInt<6>(N->getZExtValue()); }]>;
 def immU12 : PatLeaf<(i32 imm), [{ return isUInt<12>(N->getZExtValue()); }]>;
 // true if the immediate fits in a 16-bit unsigned field.
 def immU16 : PatLeaf<(i32 imm), [{ return isUInt<16>(N->getZExtValue()); }]>;
+// true if the immediate fits in a 16-bit signed field.
+def immS16 : PatLeaf<(i32 imm), [{ return isInt<16>(N->getSExtValue()); }]>;
+// true if the immediate fits in a 32-bit signed field.
+def immS32 : PatLeaf<(i32 imm), [{ return isInt<32>(N->getSExtValue()); }]>;
 
 def brtarget32 : Operand<OtherVT>;
 def brtarget23 : Operand<OtherVT>;
@@ -887,7 +891,7 @@ multiclass ALU2_FI_RI<string op2, string op3, PatFrag node> {
   defm _R : ALU2_REG_REG_IMM <op3, GR32, (node (i32 GR32:$A), (immU5:$B))>;
   defm _R : ALU2_REG_REG_REG <op3, GR32, (node (i32 GR32:$A), (i32 GR32:$B))>;
   defm _R : ALU2_REG_IMM     <op2, GR32, (node (i32 GR32:$A), (imm:$B))>;
-}	
+}
 multiclass ALU2_F_RI<string op2, string op3, PatFrag node> {
   defm _F : ALU2_REG_REG     <op2, FR32, (node (i32 FR32:$A), (i32 FR32:$B))>;
   defm _F : ALU2_REG_REG_IMM <op3, GR32, (node (i32 GR32:$A), (immU5:$B))>;
@@ -896,10 +900,13 @@ multiclass ALU2_F_RI<string op2, string op3, PatFrag node> {
 }
 
 /* --- ALU instructions ----------------------------------------------------- */
-defm ADD : ALU2_FI_RI<"add\t$D, $B",
-		      "add\t$D, $A, $B",
-		      PatFrag<(ops node:$inA, node:$inB),
-			      (add node:$inA, node:$inB)>>;
+def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
+          (ADD_G (i32 GR32:$rA), (i32 GR32:$rB))>;
+def : Pat<(add (i32 GR32:$rA), immS16:$imm),
+          (ADD16I (i32 GR32:$rA), immS16:$imm)>;
+def : Pat<(add (i32 GR32:$rA), immS32:$imm),
+          (ADD32I (i32 GR32:$rA), immS32:$imm)>;
+
 defm ADD_3_LONG : ALU2_REG_REG_IMM<"add\t$D, $A, $B",
 		                   GR32,
 		                   (add (i32 GR32:$A), imm:$B)>;
@@ -1700,5 +1707,3 @@ def : Pat<(i32 (bitconvert (f32 fpimm:$in))),
 def : Pat<(i32 (bitconvert (i32 imm:$in))),
           (MOV_LI imm:$in)>;
 
-// instruction aliases
-def : InstAlias<"nop", (ADD_R_RI TMP, 0)>;
