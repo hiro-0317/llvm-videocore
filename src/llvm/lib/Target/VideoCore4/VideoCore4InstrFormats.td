@@ -76,6 +76,7 @@ class S16_OP4<bits<4>        opcode,
   // I don't know the actual encoding for now
   bits<5> rd;
   bits<5> ra;
+  let Size = 2;
 
   let Inst{4-0}   = rd;
   let Inst{9-5}   = ra;
@@ -94,6 +95,7 @@ class S16_OP5<bits<5>       opcode,
   // I don't know the actual encoding for now
   bits<5> rd;
   bits<5> ra;
+  let Size = 2;
 
   let Inst{4-0}   = rd;
   let Inst{9-5}   = ra;
@@ -111,6 +113,7 @@ class S16_OP6<bits<6>        opcode,
   // I don't know the actual encoding for now
   bits<5> rd;
   bits<5> ra;
+  let Size = 2;
 
   let Inst{4-0}   = rd;
   let Inst{9-5}   = ra;
@@ -129,6 +132,7 @@ class S32_3_OP11<bits<11>       opcode,
   bits<5> ra;
   bits<5> rb;
   bits<4> c;
+  let Size = 4;
 
   let Inst{4-0}   = rb;
   let Inst{6-5}   = 0;
@@ -145,6 +149,8 @@ class S16_R<dag            outs,
 	    InstrItinClass itin> :
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   bits<5> rd;
+  let Size = 2;
+
   let Inst{4-0} = rd;
 }
 
@@ -155,6 +161,8 @@ class S16_U<dag            outs,
 	    InstrItinClass itin> :
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   bits<6> imm;
+  let Size = 2;
+
   let Inst{5-0} = imm;
 }
 
@@ -167,6 +175,7 @@ class S16_OP5_IMM<bits<5>        opcode,
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   bits<5> rd;
   bits<6> imm;
+  let Size = 2;
 
   let Inst{4-0}   = rd;
   let Inst{10-5}  = imm;
@@ -183,6 +192,7 @@ class S48_ARITH_IMM<bits<6>        opcode,
   bits<5>  rd;
   bits<5>  rs;
   bits<32> imm;
+  let Size = 6;
 
   let Inst{31-0}  = imm;
   let Inst{36-32} = rd;
@@ -199,6 +209,7 @@ class S32_ARITH_IMM_ACC<bits<5>        opcode,
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   bits<5>  rd;
   bits<16> imm;
+  let Size = 4;
 
   let Inst{15-0}  = imm;
   let Inst{20-16} = rd;
@@ -218,6 +229,7 @@ class S32_FOP<bits<4>        opcode,
   bits<5>  ra;
   bits<5>  rb;
   bits<16> imm;
+  let Size = 4;
 
   let Inst{4-0}   = rb;
   let Inst{6-5}   = 0;
@@ -240,6 +252,7 @@ class S32_FOPI<bits<4>        opcode,
   bits<5>  ra;
   bits<6>  b;
   bits<16> imm;
+  let Size = 4;
 
   let Inst{5-0}   = b;
   let Inst{6}     = 1;
