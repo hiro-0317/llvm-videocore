@@ -10,10 +10,10 @@ test_movx_1:                            # @test_movx_1
 	st	%r1, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r2, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
-	cmp	%r2, %r3                        # encoding: []
+	cmp	%r2, %r3                        # encoding: [0x00,0x28]
 	mov	%r0, 3                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	moveq	%r0, %r1                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -30,9 +30,9 @@ test_movx_2:                            # @test_movx_2
 	ld	%r1, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r2, 0                          # encoding: [0x00,0x00]
 	mov	%r3, 3                          # encoding: [0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -48,7 +48,7 @@ test_movx_3:                            # @test_movx_3
 	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
 	ld	%r2, (%r0)                      # encoding: [0x00,0x00]
 	mov	%r3, 1                          # encoding: [0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	mov	%r0, 2                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	movlt	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
@@ -67,7 +67,7 @@ test_movx_4:                            # @test_movx_4
 	ld	%r1, (%r0)                      # encoding: [0x00,0x00]
 	mov	%r2, 0                          # encoding: [0x00,0x00]
 	mov	%r3, 3                          # encoding: [0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	mov	%r0, 1                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
@@ -106,7 +106,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end4:
@@ -133,5 +133,5 @@ _MergedGlobals:
 	.globl	b
 .set b, _MergedGlobals+4
 	.size	b, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

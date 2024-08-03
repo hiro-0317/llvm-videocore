@@ -13,12 +13,12 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	add	%r3, %r1, 1                     # encoding: []
 	not	%r1, %r1                        # encoding: [0x00,0x00]
 	and	%r1, %r2                        # encoding: [0x00,0x00]
-	count	%r1, %r1                        # encoding: []
+	count	%r1, %r1                        # encoding: [0x00,0xc0]
 	st	%r1, (%r0)                      # encoding: [0x00,0x00]
 	cmp	%r3, 4096                       # encoding: []
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r1, %r3                        # encoding: [0x00,0x00]
-	add	%r0, 4                          # encoding: []
+	add	%r0, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
@@ -36,5 +36,5 @@ dst:
 	.space	16384
 	.size	dst, 16384
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

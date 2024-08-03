@@ -29,7 +29,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -66,5 +66,5 @@ _MergedGlobals:
 	.globl	data_signed
 .set data_signed, _MergedGlobals+32
 	.size	data_signed, 48
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

@@ -7,7 +7,7 @@ test_basic_ops:                         # @test_basic_ops
 # %bb.0:
 	ld	%r3, (%r1)                      # encoding: [0x00,0x00]
 	ld	%r4, (%r2)                      # encoding: [0x00,0x00]
-	add	%r3, %r4                        # encoding: []
+	add	%r3, %r4                        # encoding: [0x00,0x08]
 	st	%r3, (%r0)                      # encoding: [0x00,0x00]
 	ld	%r3, 4 (%r1)                    # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 4 (%r2)                    # encoding: [0x00,0x00,0x00,0x00]
@@ -39,36 +39,36 @@ test_basic_ops:                         # @test_basic_ops
 	st	%r4, 28 (%r0)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 32 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 32 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r3, %r4                        # encoding: []
+	cmp	%r3, %r4                        # encoding: [0x00,0x28]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 	moveq	%r3, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	st	%r3, 32 (%r0)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 36 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 36 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r3, %r4                        # encoding: []
+	cmp	%r3, %r4                        # encoding: [0x00,0x28]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 	movne	%r3, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	st	%r3, 36 (%r0)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 40 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 40 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r3, %r4                        # encoding: []
+	cmp	%r3, %r4                        # encoding: [0x00,0x28]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 	movult	%r3, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	st	%r3, 40 (%r0)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 44 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 44 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r3, %r4                        # encoding: []
+	cmp	%r3, %r4                        # encoding: [0x00,0x28]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 	movule	%r3, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	st	%r3, 44 (%r0)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 48 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 48 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r3, %r4                        # encoding: []
+	cmp	%r3, %r4                        # encoding: [0x00,0x28]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 	movugt	%r3, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r1, 52 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r2, 52 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	mov	%r1, 0                          # encoding: [0x00,0x00]
 	movuge	%r1, 1                          # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
@@ -94,7 +94,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -116,5 +116,5 @@ _MergedGlobals:
 	.globl	res
 .set res, _MergedGlobals+112
 	.size	res, 56
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

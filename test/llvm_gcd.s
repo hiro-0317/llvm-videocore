@@ -5,7 +5,7 @@
 	.type	gcd,@function
 gcd:                                    # @gcd
 # %bb.0:
-	cmp	%r0, %r1                        # encoding: []
+	cmp	%r0, %r1                        # encoding: [0x00,0x28]
 	beq	BB0_3                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -15,13 +15,13 @@ gcd:                                    # @gcd
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r4, %r3                        # encoding: [0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	movlt	%r4, %r1                        # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r1, %r2                        # encoding: []
+	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	movlt	%r2, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	sub	%r0, %r4                        # encoding: [0x00,0x00]
 	sub	%r1, %r2                        # encoding: [0x00,0x00]
-	cmp	%r0, %r1                        # encoding: []
+	cmp	%r0, %r1                        # encoding: [0x00,0x28]
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r2, %r0                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -51,7 +51,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	st	%r0, (%r2)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -75,5 +75,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+8
 	.size	dst, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

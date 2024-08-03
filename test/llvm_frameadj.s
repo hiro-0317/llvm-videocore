@@ -11,19 +11,19 @@ main:                                   # @main
 	add	%r2, %sp, 0                     # encoding: []
 	add	%r3, %sp, 800                   # encoding: []
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
-	mov	%tmp, %r0                       # encoding: []
-	add	%tmp, %r1                       # encoding: []
-	mov	%r4, %tmp                       # encoding: []
-	mov	%tmp, %r0                       # encoding: []
-	add	%tmp, %r2                       # encoding: []
-	mov	%r5, %tmp                       # encoding: []
+	mov	%tmp, %r0                       # encoding: [0x00,0x00]
+	add	%tmp, %r1                       # encoding: [0x00,0x08]
+	mov	%r4, %tmp                       # encoding: [0x00,0x00]
+	mov	%tmp, %r0                       # encoding: [0x00,0x00]
+	add	%tmp, %r2                       # encoding: [0x00,0x08]
+	mov	%r5, %tmp                       # encoding: [0x00,0x00]
 	ld	%r4, (%r4)                      # encoding: [0x00,0x00]
 	ld	%r5, (%r5)                      # encoding: [0x00,0x00]
-	add	%r4, %r5                        # encoding: []
-	mov	%tmp, %r0                       # encoding: []
-	add	%tmp, %r3                       # encoding: []
-	mov	%r5, %tmp                       # encoding: []
-	add	%r0, 4                          # encoding: []
+	add	%r4, %r5                        # encoding: [0x00,0x08]
+	mov	%tmp, %r0                       # encoding: [0x00,0x00]
+	add	%tmp, %r3                       # encoding: [0x00,0x08]
+	mov	%r5, %tmp                       # encoding: [0x00,0x00]
+	add	%r0, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	cmp	%r0, 400                        # encoding: []
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	st	%r4, (%r5)                      # encoding: [0x00,0x00]
@@ -32,11 +32,11 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 # %bb.2:
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 1200                       # encoding: []
+	add	%sp, 1200                       # encoding: [0xb0,0x04,0x00,0xb0]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits

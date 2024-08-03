@@ -11,18 +11,18 @@ _sra:                                   # @_sra
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:                                # %.preheader
-	add	%r0, 8                          # encoding: []
+	add	%r0, 8                          # encoding: [0x08,0x00,0x00,0xb0]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	add	%r2, %r0, -8                    # encoding: []
 	add	%r3, %r0, -4                    # encoding: []
 	ld	%r2, (%r2)                      # encoding: [0x00,0x00]
 	ld	%r3, (%r3)                      # encoding: [0x00,0x00]
 	asr	%r2, %r3                        # encoding: [0x00,0x00]
-	add	%r1, -1                         # encoding: []
+	add	%r1, -1                         # encoding: [0xff,0xff,0x00,0xb0]
 	st	%r2, (%r0)                      # encoding: [0x00,0x00]
 	cmp	%r1, 0                          # encoding: []
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, 12                         # encoding: []
+	add	%r0, 12                         # encoding: [0x0c,0x00,0x00,0xb0]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
@@ -48,7 +48,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: []
+	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -142,5 +142,5 @@ p:
 	.long	4294967295                      # 0xffffffff
 	.size	p, 324
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 53b826ea2f21e301f3ef6484b4fa8814a7c4f185)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 342a13f79e947df06d66f5532d6d20367e7b9e37)"
 	.section	".note.GNU-stack","",@progbits
