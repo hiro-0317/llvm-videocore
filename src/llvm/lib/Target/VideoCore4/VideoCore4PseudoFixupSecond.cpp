@@ -84,15 +84,9 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 
       MBB.erase(MI);
 
-      if (reg1 == reg2) {
-	if (isInt<16>(imm)) {
-	  BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD16I_G), reg1)
-	    .addImm(imm);
-	} else {
-	  BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD32I_G), reg1)
-	    .addReg(reg1)
-	    .addImm(imm);
-	}
+      if (reg1 == reg2 && isInt<16>(imm)) {
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD16I_G), reg1)
+	  .addImm(imm);
       } else {
 	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD32I_G), reg1)
 	  .addReg(reg2)
