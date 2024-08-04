@@ -9,22 +9,22 @@ llvm_control1:                          # @llvm_control1
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
-	add	%r1, %r0, 5                     # encoding: []
+	add	%r1, %r0, 5                     # encoding: [0x05,0x00,0x00,0x00,0x00,0x08,0x00,0x00]
 	mov	%r2, 10                         # encoding: [0x00,0x00]
 	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	movugt	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r1, %r0                        # encoding: [0x00,0x00]
 	sub	%r1, %r2                        # encoding: [0x00,0x18]
 	add	%r1, -5                         # encoding: [0x60,0x0b]
-	mov	%r2, 98                         # encoding: []
+	mov	%r2, 98                         # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	cmp	%r1, %r2                        # encoding: [0x00,0x28]
 	movult	%r2, %r1                        # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r1, %r2                        # encoding: [0x00,0x00]
 	add	%r1, %r0                        # encoding: [0x00,0x08]
 	mov	%r2, 5                          # encoding: [0x00,0x00]
-	mov	%r3, 51                         # encoding: []
+	mov	%r3, 51                         # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	cmp	%r1, %r2                        # encoding: [0x00,0x28]
-	mov	%r0, 40                         # encoding: []
+	mov	%r0, 40                         # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%sp, 4                          # encoding: [0x80,0x08]
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
@@ -45,7 +45,7 @@ main:                                   # @main
 	nop                                     # encoding: [0x01,0x00]
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
-	lea	%r1, dst(%pc)                   # encoding: []
+	lea	%r1, dst(%pc)                   # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%sp, 4                          # encoding: [0x80,0x08]
@@ -62,5 +62,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
 	.section	".note.GNU-stack","",@progbits

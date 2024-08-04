@@ -6,13 +6,13 @@
 main:                                   # @main
 # %bb.0:
 	mov	%r0, 0                          # encoding: [0x00,0x00]
-	lea	%r1, dst(%pc)                   # encoding: []
+	lea	%r1, dst(%pc)                   # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	clz	%r2, %r0                        # encoding: [0x00,0x00,0x00,0x00]
 	add	%r0, 1                          # encoding: [0x20,0x08]
 	st	%r2, (%r1)                      # encoding: [0x00,0x00]
-	cmp	%r0, 4096                       # encoding: []
+	cmp	%r0, 4096                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	add	%r1, 4                          # encoding: [0x80,0x08]
 	nop                                     # encoding: [0x01,0x00]
@@ -33,5 +33,5 @@ dst:
 	.space	16384
 	.size	dst, 16384
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
 	.section	".note.GNU-stack","",@progbits

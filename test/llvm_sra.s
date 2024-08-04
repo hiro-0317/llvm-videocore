@@ -5,7 +5,7 @@
 	.type	_sra,@function
 _sra:                                   # @_sra
 # %bb.0:
-	cmp	%r1, 0                          # encoding: []
+	cmp	%r1, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -13,14 +13,14 @@ _sra:                                   # @_sra
 # %bb.1:                                # %.preheader
 	add	%r0, 8                          # encoding: [0x00,0x09]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
-	add	%r2, %r0, -8                    # encoding: []
-	add	%r3, %r0, -4                    # encoding: []
+	add	%r2, %r0, -8                    # encoding: [0xf8,0xff,0xff,0xff,0x00,0x08,0x00,0x00]
+	add	%r3, %r0, -4                    # encoding: [0xfc,0xff,0xff,0xff,0x00,0x08,0x00,0x00]
 	ld	%r2, (%r2)                      # encoding: [0x00,0x00]
 	ld	%r3, (%r3)                      # encoding: [0x00,0x00]
 	asr	%r2, %r3                        # encoding: [0x00,0x00]
 	add	%r1, -1                         # encoding: [0xe0,0x0b]
 	st	%r2, (%r0)                      # encoding: [0x00,0x00]
-	cmp	%r1, 0                          # encoding: []
+	cmp	%r1, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
 	add	%r0, 12                         # encoding: [0x80,0x09]
 	nop                                     # encoding: [0x01,0x00]
@@ -43,7 +43,7 @@ main:                                   # @main
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r1, 27                         # encoding: [0x00,0x00]
-	lea	%r0, p(%pc)                     # encoding: []
+	lea	%r0, p(%pc)                     # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: p, kind: fixup_VideoCore4_32
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -142,5 +142,5 @@ p:
 	.long	4294967295                      # 0xffffffff
 	.size	p, 324
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
 	.section	".note.GNU-stack","",@progbits

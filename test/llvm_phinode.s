@@ -5,19 +5,19 @@
 	.type	llvm_phinode,@function
 llvm_phinode:                           # @llvm_phinode
 # %bb.0:
-	cmp	%r0, 0                          # encoding: []
+	cmp	%r0, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	beq	BB0_4                           # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r3, 1                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:
-	cmp	%r1, 0                          # encoding: []
+	cmp	%r1, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	beq	BB0_3                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
-	add	%r3, %r0, -1                    # encoding: []
+	add	%r3, %r0, -1                    # encoding: [0xff,0xff,0xff,0xff,0x00,0x08,0x00,0x00]
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
 	add	%r0, %r3                        # encoding: [0x00,0x08]
@@ -25,7 +25,7 @@ llvm_phinode:                           # @llvm_phinode
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
 	mov	%r4, 0                          # encoding: [0x00,0x00]
-	add	%r3, %r0, 2                     # encoding: []
+	add	%r3, %r0, 2                     # encoding: [0x02,0x00,0x00,0x00,0x00,0x08,0x00,0x00]
 	cmp	%r2, %r4                        # encoding: [0x00,0x28]
 	moveq	%r0, %r3                        # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r3, %r0                        # encoding: [0x00,0x00]
@@ -43,7 +43,7 @@ $func_end0:
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	lea	%r3, _MergedGlobals(%pc)        # encoding: []
+	lea	%r3, _MergedGlobals(%pc)        # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
 	sub	%sp, 4                          # encoding: [0x80,0x18]
 	ld	%r0, (%r3)                      # encoding: [0x00,0x00]
@@ -124,5 +124,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+96
 	.size	dst, 32
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
 	.section	".note.GNU-stack","",@progbits

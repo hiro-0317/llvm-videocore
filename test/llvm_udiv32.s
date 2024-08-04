@@ -395,11 +395,11 @@ main:                                   # @main
 # %bb.0:
 	sub	%sp, 4                          # encoding: [0x80,0x18]
 	mov	%r2, 0                          # encoding: [0x00,0x00]
-	lea	%r3, z(%pc)                     # encoding: []
+	lea	%r3, z(%pc)                     # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: z, kind: fixup_VideoCore4_32
-	lea	%r5, d(%pc)                     # encoding: []
+	lea	%r5, d(%pc)                     # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: d, kind: fixup_VideoCore4_32
-	lea	%r4, q(%pc)                     # encoding: []
+	lea	%r4, q(%pc)                     # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
                                         #   fixup A - offset: 0, value: q, kind: fixup_VideoCore4_32
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -415,7 +415,7 @@ BB1_1:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r1, %r4                        # encoding: [0x00,0x00]
 	add	%r1, %r2                        # encoding: [0x00,0x08]
 	add	%r2, 4                          # encoding: [0x80,0x08]
-	cmp	%r2, 4096                       # encoding: []
+	cmp	%r2, 4096                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
 	st	%r0, (%r1)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -452,5 +452,5 @@ q:
 	.space	4096
 	.size	q, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
 	.section	".note.GNU-stack","",@progbits
