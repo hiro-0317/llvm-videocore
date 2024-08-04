@@ -6,14 +6,14 @@
 main:                                   # @main
 # %bb.0:                                # %copy_backwards
 	mov	%r0, 0                          # encoding: [0x00,0x00]
-	lea	%r1, dst(%pc)                   # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5,0x00,0x00]
+	lea	%r1, dst(%pc)                   # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5]
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 BB0_1:                                  # %copy_backwards_loop
                                         # =>This Inner Loop Header: Depth=1
 	ldb	%r2, (%r0, %r1)                 # encoding: [0x00,0x00,0x00,0x00]
 	stb	%r2, (%r0, %r1)                 # encoding: [0x00,0x00,0x00,0x00]
 	add	%r0, -1                         # encoding: [0xe0,0x0b]
-	cmp	%r0, -992                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
+	cmp	%r0, -992                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -35,5 +35,5 @@ dst:
 	.space	4092
 	.size	dst, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
 	.section	".note.GNU-stack","",@progbits

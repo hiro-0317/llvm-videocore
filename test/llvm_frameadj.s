@@ -7,9 +7,9 @@ main:                                   # @main
 # %bb.0:
 	sub	%sp, 1200                       # encoding: [0xb0,0x04,0xc0,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
-	add	%r1, %sp, 400                   # encoding: [0x90,0x01,0x00,0x00,0x00,0x08,0x00,0x00]
-	add	%r2, %sp, 0                     # encoding: [0x00,0x00,0x00,0x00,0x00,0x08,0x00,0x00]
-	add	%r3, %sp, 800                   # encoding: [0x20,0x03,0x00,0x00,0x00,0x08,0x00,0x00]
+	add	%r1, %sp, 400                   # encoding: [0x90,0x01,0x00,0x00,0x00,0x08]
+	add	%r2, %sp, 0                     # encoding: [0x00,0x00,0x00,0x00,0x00,0x08]
+	add	%r3, %sp, 800                   # encoding: [0x20,0x03,0x00,0x00,0x00,0x08]
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r4, %r0                        # encoding: [0x00,0x00]
 	add	%r4, %r1                        # encoding: [0x00,0x08]
@@ -21,7 +21,7 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	mov	%r5, %r0                        # encoding: [0x00,0x00]
 	add	%r5, %r3                        # encoding: [0x00,0x08]
 	add	%r0, 4                          # encoding: [0x80,0x08]
-	cmp	%r0, 400                        # encoding: [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
+	cmp	%r0, 400                        # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	st	%r4, (%r5)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -35,5 +35,5 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 546f933925869dce37889df1fa9d3bae6c5276f6)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
 	.section	".note.GNU-stack","",@progbits
