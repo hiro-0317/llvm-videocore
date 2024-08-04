@@ -975,14 +975,21 @@ def : Pat<(mul (i32 GR32:$rA), (i32 GR32:$rB)),
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
           (MUL32I_P (i32 GR32:$rA), immS32:$imm)>;
 
+def SUB_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
+                              "",
+                              []>;
+def SUB32I_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
+                                 "",
+                                 []>;
+def : Pat<(sub (i32 GR32:$rA), (i32 GR32:$rB)),
+          (SUB_P (i32 GR32:$rA), (i32 GR32:$rB))>;
+def : Pat<(add (i32 GR32:$rA), immS32:$imm),
+          (SUB32I_P (i32 GR32:$rA), immS32:$imm)>;
+
 defm XOR : ALU2_F_RI<"eor\t$D, $B",
 		     "eor\t$D, $A, $B",
 		     PatFrag<(ops node:$inA, node:$inB),
 			     (xor node:$inA, node:$inB)>>;
-defm SUB : ALU2_FI_RI<"sub\t$D, $B",
-		      "sub\t$D, $A, $B",
-		      PatFrag<(ops node:$inA, node:$inB),
-			      (sub node:$inA, node:$inB)>>;
 defm AND : ALU2_F_RI<"and\t$D, $B",
 		     "and\t$D, $A, $B",
 		     PatFrag<(ops node:$inA, node:$inB),
