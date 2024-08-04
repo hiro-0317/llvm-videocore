@@ -410,7 +410,7 @@ BB1_1:                                  # =>This Inner Loop Header: Depth=1
 	nop                                     # encoding: [0x01,0x00]
 	mov	%r1, %r4                        # encoding: [0x00,0x00]
 	add	%r1, %r2                        # encoding: [0x00,0x08]
-	add	%r2, 4                          # encoding: [0x04,0x00,0x00,0xb0]
+	add	%r2, 4                          # encoding: [0x80,0x08]
 	cmp	%r2, 4096                       # encoding: []
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
 	st	%r0, (%r1)                      # encoding: [0x00,0x00]
@@ -420,7 +420,7 @@ BB1_1:                                  # =>This Inner Loop Header: Depth=1
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
+	add	%sp, 4                          # encoding: [0x80,0x08]
 	ld	%r0, (%r4)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -448,5 +448,5 @@ q:
 	.space	4096
 	.size	q, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 227a8d07b4d45051689d072091d549a5ebae1708)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 9893724637a6a6d5f5f65e5c9f6163c6d7134662)"
 	.section	".note.GNU-stack","",@progbits

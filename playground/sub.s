@@ -12,5 +12,5 @@ add:                                    # @add
 $func_end0:
 	.size	add, ($func_end0)-add
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 227a8d07b4d45051689d072091d549a5ebae1708)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 9893724637a6a6d5f5f65e5c9f6163c6d7134662)"
 	.section	".note.GNU-stack","",@progbits

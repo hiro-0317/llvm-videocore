@@ -59,11 +59,11 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	cmp	%r3, %r0                        # encoding: [0x00,0x28]
 	eor	%r4, -306674912                 # encoding: [0x00,0x00]
 	moveq	%r4, %r5                        # encoding: [0x00,0x00,0x00,0x00]
-	add	%r2, 1                          # encoding: [0x01,0x00,0x00,0xb0]
+	add	%r2, 1                          # encoding: [0x20,0x08]
 	st	%r4, (%r1)                      # encoding: [0x00,0x00]
 	cmp	%r2, 256                        # encoding: []
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r1, 4                          # encoding: [0x04,0x00,0x00,0xb0]
+	add	%r1, 4                          # encoding: [0x80,0x08]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
@@ -104,7 +104,7 @@ BB1_6:                                  #   in Loop: Header=BB1_4 Depth=1
 	and	%r9, 255                        # encoding: [0x00,0x00]
 	ld	%r8, (%r4, %r9)                 # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r9, %r2                        # encoding: [0x00,0x00]
-	add	%r3, 1                          # encoding: [0x01,0x00,0x00,0xb0]
+	add	%r3, 1                          # encoding: [0x20,0x08]
 	cmp	%r1, %r3                        # encoding: [0x00,0x28]
 	lsr	%r9, 8                          # encoding: [0x00,0x00]
 	mov	%r2, %r8                        # encoding: [0x00,0x00]
@@ -163,7 +163,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x04,0x00,0x00,0xb0]
+	add	%sp, 4                          # encoding: [0x80,0x08]
 	mov	%r0, %r1                        # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end2:
@@ -196,5 +196,5 @@ _MergedGlobals:
 	.globl	retval
 .set retval, _MergedGlobals+4
 	.size	retval, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 227a8d07b4d45051689d072091d549a5ebae1708)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 9893724637a6a6d5f5f65e5c9f6163c6d7134662)"
 	.section	".note.GNU-stack","",@progbits
