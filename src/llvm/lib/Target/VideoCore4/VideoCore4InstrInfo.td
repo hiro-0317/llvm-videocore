@@ -964,10 +964,17 @@ def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
           (ADD32I_P (i32 GR32:$rA), immS32:$imm)>;
 
-defm MUL : ALU2_FI_RI<"mul\t$D, $B",
-		      "mul\t$D, $A, $B",
-		      PatFrag<(ops node:$inA, node:$inB),
-			      (mul node:$inA, node:$inB)>>;
+def MUL_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
+                              "",
+                              []>;
+def MUL32I_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
+                                 "",
+                                 []>;
+def : Pat<(mul (i32 GR32:$rA), (i32 GR32:$rB)),
+          (MUL_P (i32 GR32:$rA), (i32 GR32:$rB))>;
+def : Pat<(add (i32 GR32:$rA), immS32:$imm),
+          (MUL32I_P (i32 GR32:$rA), immS32:$imm)>;
+
 defm XOR : ALU2_F_RI<"eor\t$D, $B",
 		     "eor\t$D, $A, $B",
 		     PatFrag<(ops node:$inA, node:$inB),
