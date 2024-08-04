@@ -981,19 +981,27 @@ def SUB_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
 def SUB32I_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
                                  "",
                                  []>;
+
 def : Pat<(sub (i32 GR32:$rA), (i32 GR32:$rB)),
           (SUB_P (i32 GR32:$rA), (i32 GR32:$rB))>;
-def : Pat<(add (i32 GR32:$rA), immS32:$imm),
+def : Pat<(sub (i32 GR32:$rA), immS32:$imm),
           (SUB32I_P (i32 GR32:$rA), immS32:$imm)>;
+
+def AND_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
+                              "",
+                              []>;
+def AND32I_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
+                                 "",
+                                 []>;
+def : Pat<(and (i32 GR32:$rA), (i32 GR32:$rB)),
+          (AND_P (i32 GR32:$rA), (i32 GR32:$rB))>;
+def : Pat<(and (i32 GR32:$rA), immS32:$imm),
+          (AND32I_P (i32 GR32:$rA), immS32:$imm)>;
 
 defm XOR : ALU2_F_RI<"eor\t$D, $B",
 		     "eor\t$D, $A, $B",
 		     PatFrag<(ops node:$inA, node:$inB),
 			     (xor node:$inA, node:$inB)>>;
-defm AND : ALU2_F_RI<"and\t$D, $B",
-		     "and\t$D, $A, $B",
-		     PatFrag<(ops node:$inA, node:$inB),
-			     (and node:$inA, node:$inB)>>;
 defm NOT : ALU1_F_RI<"not\t$D, $D",
 	  	     "not\t$D, $A",
 		     PatFrag<(ops node:$in),
