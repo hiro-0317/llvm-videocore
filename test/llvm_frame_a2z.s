@@ -134,7 +134,7 @@ frame_a2z:                              # @frame_a2z
 	add	%r0, %r1                        # encoding: [0x00,0x08]
 	ld	%r1, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 104                        # encoding: [0x68,0x00,0x00,0xb0]
+	add	%sp, 104                        # encoding: [0x68,0x00,0x40,0xb0]
 	add	%r0, %r1                        # encoding: [0x00,0x08]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -170,5 +170,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 9893724637a6a6d5f5f65e5c9f6163c6d7134662)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8c3495e976e261ed2aa3bf4502706b903a8a714e)"
 	.section	".note.GNU-stack","",@progbits

@@ -29,11 +29,11 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 # %bb.2:
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 1200                       # encoding: [0xb0,0x04,0x00,0xb0]
+	add	%sp, 1200                       # encoding: [0xb0,0x04,0x40,0xb0]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 9893724637a6a6d5f5f65e5c9f6163c6d7134662)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8c3495e976e261ed2aa3bf4502706b903a8a714e)"
 	.section	".note.GNU-stack","",@progbits
