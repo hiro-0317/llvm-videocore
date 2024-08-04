@@ -883,9 +883,6 @@ def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
           (ADD32I_P (i32 GR32:$rA), immS32:$imm)>;
 
-defm ADD_3_LONG : ALU2_REG_REG_IMM<"add\t$D, $A, $B",
-		                   GR32,
-		                   (add (i32 GR32:$A), imm:$B)>;
 defm MUL : ALU2_FI_RI<"mul\t$D, $B",
 		      "mul\t$D, $A, $B",
 		      PatFrag<(ops node:$inA, node:$inB),
