@@ -85,8 +85,8 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2 && isInt<16>(imm)) {
-	if (isInt<5>(imm)) {
-	  BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD5I_G), reg1)
+	if (isInt<5>(imm) && VideoCore4::FR32RegClass.contains(reg1)) {
+	  BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD5I_F), reg1)
 	    .addImm(imm);
 	} else {
 	  BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD16I_G), reg1)
@@ -108,15 +108,15 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_F), reg1)
 	  .addReg(reg3);
       } else if (reg1 == reg3) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_F), reg1)
 	  .addReg(reg2);
       } else {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_F), reg1)
 	  .addReg(reg3);
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::ADD_F), reg1)
 	  .addReg(reg2);
       }
       Changed = true;
@@ -130,8 +130,8 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2 && isInt<16>(imm)) {
-	if (isInt<5>(imm)) {
-	  BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL5I_G), reg1)
+	if (isInt<5>(imm) && VideoCore4::FR32RegClass.contains(reg1)) {
+	  BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL5I_F), reg1)
 	    .addImm(imm);
 	} else {
 	  BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL16I_G), reg1)
@@ -153,15 +153,15 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_F), reg1)
 	  .addReg(reg3);
       } else if (reg1 == reg3) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_F), reg1)
 	  .addReg(reg2);
       } else {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_F), reg1)
 	  .addReg(reg3);
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MUL_F), reg1)
 	  .addReg(reg2);
       }
       Changed = true;
@@ -175,8 +175,8 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2 && isInt<16>(imm)) {
-	if (isInt<5>(imm)) {
-	  BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB5I_G), reg1)
+	if (isInt<5>(imm) && VideoCore4::FR32RegClass.contains(reg1)) {
+	  BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB5I_F), reg1)
 	    .addImm(imm);
 	} else {
 	  BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB16I_G), reg1)
@@ -198,15 +198,15 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_F), reg1)
 	  .addReg(reg3);
       } else if (reg1 == reg3) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_F), reg1)
 	  .addReg(reg2);
       } else {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_F), reg1)
 	  .addReg(reg3);
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::SUB_F), reg1)
 	  .addReg(reg2);
       }
       Changed = true;
@@ -238,15 +238,15 @@ VideoCore4PseudoFixupSecond::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
       MBB.erase(MI);
 
       if (reg1 == reg2) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_F), reg1)
 	  .addReg(reg3);
       } else if (reg1 == reg3) {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_F), reg1)
 	  .addReg(reg2);
       } else {
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::MOV_F), reg1)
 	  .addReg(reg3);
-	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_G), reg1)
+	BuildMI(MBB, I, dl, TII->get(VideoCore4::AND_F), reg1)
 	  .addReg(reg2);
       }
       Changed = true;

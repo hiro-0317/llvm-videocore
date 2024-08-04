@@ -431,7 +431,6 @@ namespace vc4util {
   isCmp(unsigned opcode) {
     switch (opcode) {
     case llvm::VideoCore4::CMP_F:
-    case llvm::VideoCore4::CMP_G:
     case llvm::VideoCore4::CMP_LI:
       {
 	return true;

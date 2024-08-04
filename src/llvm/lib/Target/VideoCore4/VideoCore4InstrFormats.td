@@ -74,15 +74,14 @@ class S16_OP4<bits<4>        opcode,
 	      InstrItinClass itin> :
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   // I don't know the actual encoding for now
-  bits<5> rd;
+  bits<4> rd;
   bits<5> imm;
   let Size = 2;
 
-  let Inst{4-0}   = rd;
-  let Inst{9-5}   = imm;
-  let Inst{10}    = 0;
-  let Inst{14-11} = opcode;
-  let Inst{15}    = 0;
+  let Inst{3-0}   = rd;
+  let Inst{8-4}   = imm;
+  let Inst{12-9}  = opcode;
+  let Inst{15-13} = 0b011;
 }
 
 class S16_OP5<bits<5>       opcode,
@@ -93,14 +92,14 @@ class S16_OP5<bits<5>       opcode,
 	     InstrItinClass itin> :
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   // I don't know the actual encoding for now
-  bits<5> rd;
-  bits<5> ra;
+  bits<4> rd;
+  bits<4> ra;
   let Size = 2;
 
-  let Inst{4-0}   = rd;
-  let Inst{9-5}   = ra;
-  let Inst{14-10} = opcode;
-  let Inst{15}    = 0;
+  let Inst{3-0}   = rd;
+  let Inst{7-4}   = ra;
+  let Inst{12-8}  = opcode;
+  let Inst{15-13} = 0b010;
 }
 
 class S16_OP6<bits<6>        opcode,

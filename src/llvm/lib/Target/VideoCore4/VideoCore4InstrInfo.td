@@ -120,19 +120,10 @@ def calltarget : Operand<i32>;
 // Instruction list..
 //===----------------------------------------------------------------------===//
 
-class VC4_2_OP4_S16_G<bits<4>        opcode,
+class VC4_2_OP4_S16_F<bits<4>        opcode,
                       string         instr_asm,
                       InstrItinClass itin = IIAlu> :
-      S16_OP4<opcode, (outs GR32:$rd), (ins i32imm:$imm),
-	      !strconcat(instr_asm, "\t$rd, $imm"),
-              [], itin>
-{
-  let isReMaterializable = 1;
-}
-class VC4_2_OP4_S16_USE_G<bits<4>        opcode,
-                          string         instr_asm,
-                          InstrItinClass itin = IIAlu> :
-      S16_OP4<opcode, (outs), (ins GR32:$rd, i32imm:$imm),
+      S16_OP4<opcode, (outs FR32:$rd), (ins i32imm:$imm),
 	      !strconcat(instr_asm, "\t$rd, $imm"),
               [], itin>
 {
@@ -147,15 +138,6 @@ class VC4_2_OP4_S16_USE_F<bits<4>        opcode,
 {
   let isReMaterializable = 1;
 }
-class VC4_2_OP5_S16_USE_G<bits<5>        opcode,
-                          string         instr_asm,
-                          InstrItinClass itin = IIAlu> :
-      S16_OP5<opcode, (outs), (ins GR32:$rd, GR32:$ra),
-	      !strconcat(instr_asm, "\t$rd, $ra"),
-              [], itin>
-{
-  let isReMaterializable = 1;
-}
 class VC4_2_OP5_S16_USE_F<bits<5>        opcode,
                           string         instr_asm,
                           InstrItinClass itin = IIAlu> :
@@ -165,10 +147,10 @@ class VC4_2_OP5_S16_USE_F<bits<5>        opcode,
 {
   let isReMaterializable = 1;
 }
-class VC4_2_OP5_S16_G<bits<5>        opcode,
+class VC4_2_OP5_S16_F<bits<5>        opcode,
                       string         instr_asm,
                       InstrItinClass itin = IIAlu> :
-      S16_OP5<opcode, (outs GR32:$rd), (ins GR32:$ra),
+      S16_OP5<opcode, (outs FR32:$rd), (ins FR32:$ra),
 	      !strconcat(instr_asm, "\t$rd, $ra"),
               [], itin>
 {
@@ -345,16 +327,6 @@ class VC4_SWI_U<string         instr_asm,
   let Inst{15-6}         = 0b0000000111;
   let isReMaterializable = 1;
 }
-class VC4_2_OP5_S16_IMM<bits<5>        opcode,
-                        string         instr_asm,
-                        InstrItinClass itin = IIAlu> :
-      S16_OP5_IMM<opcode,
-                  (outs GR32:$rd), (ins i32imm:$imm),
-	          !strconcat(instr_asm, "\t$rd, %sp, $imm"),
-                  [], itin>
-{
-  let isReMaterializable = 1;
-}
 class VC4_JMP32<bits<16>       opcode,
                 string         instr_asm,
                 InstrItinClass itin = IIAlu> :
@@ -472,58 +444,54 @@ def SWIU       : VC4_SWI_U      <"swi",      IIAlu>;
 
 // operand(6) 2op
 def COUNT_G : VC4_2_OP6_S16_G   <0b110000, "count", IIAlu>;
-// operand(4) 2op
-def ADDSP_G : VC4_2_OP5_S16_IMM <0b00010,  "addsp", IIAlu>;
 
 // operand(4) 2op
-def MOV5I_G       : VC4_2_OP4_S16_G <0b0000, "mov",       IIAlu>;
-def ADD5I_G       : VC4_2_OP4_S16_G <0b0001, "add",       IIAlu>;
-def MUL5I_G       : VC4_2_OP4_S16_G <0b0010, "mul",       IIAlu>;
-def SUB5I_G       : VC4_2_OP4_S16_G <0b0011, "sub",       IIAlu>;
-def NOT5I_G       : VC4_2_OP4_S16_G <0b0100, "not",       IIAlu>;
+def MOV5I_F       : VC4_2_OP4_S16_F <0b0000, "mov",       IIAlu>;
+def ADD5I_F       : VC4_2_OP4_S16_F <0b0001, "add",       IIAlu>;
+def MUL5I_F       : VC4_2_OP4_S16_F <0b0010, "mul",       IIAlu>;
+def SUB5I_F       : VC4_2_OP4_S16_F <0b0011, "sub",       IIAlu>;
+def NOT5I_F       : VC4_2_OP4_S16_F <0b0100, "not",       IIAlu>;
 let Defs = [SR] in {
-  def CMP5I_G : VC4_2_OP4_S16_USE_G <0b0101, "cmp", IIAlu>;
   def CMP5I_F : VC4_2_OP4_S16_USE_F <0b0101, "cmp", IIAlu>; // Fast
 }
-def BTEST5I_G     : VC4_2_OP4_S16_G <0b0110, "btest",     IIAlu>;
-def BMASK5I_G     : VC4_2_OP4_S16_G <0b0111, "bmask",     IIAlu>;
-def BITSET5I_G    : VC4_2_OP4_S16_G <0b1000, "bitset",    IIAlu>;
-def BITCLEAR5I_G  : VC4_2_OP4_S16_G <0b1001, "bitclear",  IIAlu>;
-def BITFLIP5I_G   : VC4_2_OP4_S16_G <0b1010, "bitflip",   IIAlu>;
-def ADDSCALE35I_G : VC4_2_OP4_S16_G <0b1011, "addscale3", IIAlu>;
-def SIGNEXT5I_G   : VC4_2_OP4_S16_G <0b1100, "signext",   IIAlu>;
-def LSR5I_G       : VC4_2_OP4_S16_G <0b1101, "lsr",       IIAlu>;
-def SHL5I_G       : VC4_2_OP4_S16_G <0b1110, "shl",       IIAlu>;
-def ASR5I_G       : VC4_2_OP4_S16_G <0b1111, "asr",       IIAlu>;
+def BTEST5I_F     : VC4_2_OP4_S16_F <0b0110, "btest",     IIAlu>;
+def BMASK5I_F     : VC4_2_OP4_S16_F <0b0111, "bmask",     IIAlu>;
+def BITSET5I_F    : VC4_2_OP4_S16_F <0b1000, "bitset",    IIAlu>;
+def BITCLEAR5I_F  : VC4_2_OP4_S16_F <0b1001, "bitclear",  IIAlu>;
+def BITFLIP5I_F   : VC4_2_OP4_S16_F <0b1010, "bitflip",   IIAlu>;
+def ADDSCALE35I_F : VC4_2_OP4_S16_F <0b1011, "addscale3", IIAlu>;
+def SIGNEXT5I_F   : VC4_2_OP4_S16_F <0b1100, "signext",   IIAlu>;
+def LSR5I_F       : VC4_2_OP4_S16_F <0b1101, "lsr",       IIAlu>;
+def SHL5I_F       : VC4_2_OP4_S16_F <0b1110, "shl",       IIAlu>;
+def ASR5I_F       : VC4_2_OP4_S16_F <0b1111, "asr",       IIAlu>;
 
 // operand(5) 2op
-def MOV_G       : VC4_2_OP5_S16_G <0b00000, "mov",       IIAlu>;
-def CMN_G       : VC4_2_OP5_S16_G <0b00001, "cmn",       IIAlu>;
-def ADD_G       : VC4_2_OP5_S16_G <0b00010, "add",       IIAlu>;
-def BIC_G       : VC4_2_OP5_S16_G <0b00011, "bic",       IIAlu>;
-def MUL_G       : VC4_2_OP5_S16_G <0b00100, "mul",       IIAlu>;
-def EOR_G       : VC4_2_OP5_S16_G <0b00101, "eor",       IIAlu>;
-def SUB_G       : VC4_2_OP5_S16_G <0b00110, "sub",       IIAlu>;
-def AND_G       : VC4_2_OP5_S16_G <0b00111, "and",       IIAlu>;
-def ROR_G       : VC4_2_OP5_S16_G <0b01001, "ror",       IIAlu>;
-def NOT_G       : VC4_2_OP5_S16_G <0b01000, "not",       IIAlu>;
+def MOV_F       : VC4_2_OP5_S16_F <0b00000, "mov",       IIAlu>;
+def CMN_F       : VC4_2_OP5_S16_F <0b00001, "cmn",       IIAlu>;
+def ADD_F       : VC4_2_OP5_S16_F <0b00010, "add",       IIAlu>;
+def BIC_F       : VC4_2_OP5_S16_F <0b00011, "bic",       IIAlu>;
+def MUL_F       : VC4_2_OP5_S16_F <0b00100, "mul",       IIAlu>;
+def EOR_F       : VC4_2_OP5_S16_F <0b00101, "eor",       IIAlu>;
+def SUB_F       : VC4_2_OP5_S16_F <0b00110, "sub",       IIAlu>;
+def AND_F       : VC4_2_OP5_S16_F <0b00111, "and",       IIAlu>;
+def ROR_F       : VC4_2_OP5_S16_F <0b01001, "ror",       IIAlu>;
+def NOT_F       : VC4_2_OP5_S16_F <0b01000, "not",       IIAlu>;
 let Defs = [SR] in {
-  def CMP_G : VC4_2_OP5_S16_USE_G <0b01010, "cmp", IIAlu>;
   def CMP_F : VC4_2_OP5_S16_USE_F <0b01010, "cmp", IIAlu>; // Fast
 }
-def RSUB_G      : VC4_2_OP5_S16_G <0b01011, "rsub",      IIAlu>;
-def BTEST_G     : VC4_2_OP5_S16_G <0b01100, "gtest",     IIAlu>;
-def OR_G        : VC4_2_OP5_S16_G <0b01101, "or",        IIAlu>;
-def MAX_G       : VC4_2_OP5_S16_G <0b01111, "max",       IIAlu>;
-def BITSET_G    : VC4_2_OP5_S16_G <0b10000, "bitset",    IIAlu>;
-def MIN_G       : VC4_2_OP5_S16_G <0b10001, "min",       IIAlu>;
-def ADDSCALE1_G : VC4_2_OP5_S16_G <0b10011, "addscale1", IIAlu>;
-def ADDSCALE2_G : VC4_2_OP5_S16_G <0b10101, "addscale2", IIAlu>;
-def ADDSCALE4_G : VC4_2_OP5_S16_G <0b10111, "addscale4", IIAlu>;
-def NEG_G       : VC4_2_OP5_S16_G <0b11001, "neg",       IIAlu>;
-def MSB_G       : VC4_2_OP5_S16_G <0b11011, "msb",       IIAlu>;
-def BREV_G      : VC4_2_OP5_S16_G <0b11101, "brev",      IIAlu>;
-def ABS_G       : VC4_2_OP5_S16_G <0b11111, "abs",       IIAlu>;
+def RSUB_F      : VC4_2_OP5_S16_F <0b01011, "rsub",      IIAlu>;
+def BTEST_F     : VC4_2_OP5_S16_F <0b01100, "gtest",     IIAlu>;
+def OR_F        : VC4_2_OP5_S16_F <0b01101, "or",        IIAlu>;
+def MAX_F       : VC4_2_OP5_S16_F <0b01111, "max",       IIAlu>;
+def BITSET_F    : VC4_2_OP5_S16_F <0b10000, "bitset",    IIAlu>;
+def MIN_F       : VC4_2_OP5_S16_F <0b10001, "min",       IIAlu>;
+def ADDSCALE1_F : VC4_2_OP5_S16_F <0b10011, "addscale1", IIAlu>;
+def ADDSCALE2_F : VC4_2_OP5_S16_F <0b10101, "addscale2", IIAlu>;
+def ADDSCALE4_F : VC4_2_OP5_S16_F <0b10111, "addscale4", IIAlu>;
+def NEG_F       : VC4_2_OP5_S16_F <0b11001, "neg",       IIAlu>;
+def MSB_F       : VC4_2_OP5_S16_F <0b11011, "msb",       IIAlu>;
+def BREV_F      : VC4_2_OP5_S16_F <0b11101, "brev",      IIAlu>;
+def ABS_F       : VC4_2_OP5_S16_F <0b11111, "abs",       IIAlu>;
 
 // operand(11) 3op
 def MULHD_SS_G : VC4_3_OP11_S32_G <0b11000100000, "mulhd.ss", IIAlu, 0>;
@@ -596,7 +564,7 @@ def MSB16I_G       : VC4_2_OP5_S32_ACC_G <0b11011, "msb",       IIAlu>;
 def BREV16I_G      : VC4_2_OP5_S32_ACC_G <0b11101, "brev",      IIAlu>;
 def ABS16I_G       : VC4_2_OP5_S32_ACC_G <0b11111, "abs",       IIAlu>;
 
-def MOV32I_G       : VC4_3_OP6_S48_G <0b000000, "mov",       IIAlu>;
+//def MOV32I_G       : VC4_3_OP6_S48_G <0b000000, "mov",       IIAlu>;
 def CMN32I_G       : VC4_3_OP6_S48_G <0b000001, "cmn",       IIAlu>;
 def ADD32I_G       : VC4_3_OP6_S48_G <0b000010, "add",       IIAlu>;
 def BIC32I_G       : VC4_3_OP6_S48_G <0b000011, "bic",       IIAlu>;
@@ -1210,10 +1178,6 @@ let isAsCheapAsAMove = 1 in
 
   def MOV_FI : MOVI <FR32, (i32 immU5:$S)>;
   def MOV_RI : MOVI <GR32, (i32 immU5:$S)>;
-
-  def MOV_F : S16<(outs FR32:$D), (ins FR32:$A),
-  	 	   "mov\t$D, $A",
-		   []>;
 
   def MOV_R : S32<(outs GR32:$D), (ins GR32:$A),
    	    	   "mov\t$D, $A",
