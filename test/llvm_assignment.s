@@ -66,5 +66,5 @@ _MergedGlobals:
 	.globl	data_signed
 .set data_signed, _MergedGlobals+32
 	.size	data_signed, 48
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git e0dc036375c4c937bfefeee5a1e0007048118b99)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 227a8d07b4d45051689d072091d549a5ebae1708)"
 	.section	".note.GNU-stack","",@progbits
