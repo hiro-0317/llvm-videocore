@@ -122,6 +122,12 @@ VideoCore4RP::runOnMachineBasicBlock(MachineBasicBlock &MBB) {
 	    }
 	  }
 	  if (isBlocked) break;
+	  for (const auto &MO_Def : MBBI->defs()) {
+	    if (MO_Def.isReg()) continue;
+	    if (MO_Def.getReg() == MO.getReg()) {
+	      isBlocked = true; break;
+	    }
+	  }
 	  if (MO.getReg() == def) {
 	    std::cout << "rewrite use" << std::endl;
 	    MO.setReg(use);

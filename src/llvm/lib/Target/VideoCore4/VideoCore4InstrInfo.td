@@ -875,10 +875,13 @@ multiclass ALU2_F_RI<string op2, string op3, PatFrag node> {
 def ADD_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, GR32:$rb),
                               "",
                               []>;
+def ADD32I_P : VideoCore4Pseudo<(outs GR32:$rd), (ins GR32:$ra, i32imm:$imm),
+                                 "",
+                                 []>;
 def : Pat<(add (i32 GR32:$rA), (i32 GR32:$rB)),
           (ADD_P (i32 GR32:$rA), (i32 GR32:$rB))>;
 def : Pat<(add (i32 GR32:$rA), immS32:$imm),
-          (ADD32I_G (i32 GR32:$rA), immS32:$imm)>;
+          (ADD32I_P (i32 GR32:$rA), immS32:$imm)>;
 
 defm ADD_3_LONG : ALU2_REG_REG_IMM<"add\t$D, $A, $B",
 		                   GR32,
