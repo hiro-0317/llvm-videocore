@@ -15,8 +15,8 @@ test_basic_ops:                         # @test_basic_ops
 	st	%r3, 4 (%r0)                    # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 8 (%r1)                    # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 8 (%r2)                    # encoding: [0x00,0x00,0x00,0x00]
-	mul	%r4, %r3                        # encoding: [0x00,0x00]
-	st	%r4, 8 (%r0)                    # encoding: [0x00,0x00,0x00,0x00]
+	mul	%r3, %r4                        # encoding: [0x00,0x10]
+	st	%r3, 8 (%r0)                    # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r3, 12 (%r1)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r4, 12 (%r2)                   # encoding: [0x00,0x00,0x00,0x00]
 	lsr	%r3, %r4                        # encoding: [0x00,0x00]
@@ -116,5 +116,5 @@ _MergedGlobals:
 	.globl	res
 .set res, _MergedGlobals+112
 	.size	res, 56
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8c3495e976e261ed2aa3bf4502706b903a8a714e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
 	.section	".note.GNU-stack","",@progbits
