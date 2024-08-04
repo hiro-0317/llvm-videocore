@@ -568,9 +568,61 @@ let isBranch=1, isTerminator=1, isBarrier=1 in {
   }
 }
 
-def ADD16I_G : VC4_2_OP5_S32_ACC_G <0b00000,  "add", IIAlu>;
-def ADD32I_G : VC4_3_OP6_S48_G     <0b111011, "add", IIAlu>;
+def MOV16I_G       : VC4_2_OP5_S32_ACC_G <0b00000, "mov",       IIAlu>;
+def CMN16I_G       : VC4_2_OP5_S32_ACC_G <0b00001, "cmn",       IIAlu>;
+def ADD16I_G       : VC4_2_OP5_S32_ACC_G <0b00010, "add",       IIAlu>;
+def BIC16I_G       : VC4_2_OP5_S32_ACC_G <0b00011, "bic",       IIAlu>;
+def MUL16I_G       : VC4_2_OP5_S32_ACC_G <0b00100, "mul",       IIAlu>;
+def EOR16I_G       : VC4_2_OP5_S32_ACC_G <0b00101, "eor",       IIAlu>;
+def SUB16I_G       : VC4_2_OP5_S32_ACC_G <0b00110, "sub",       IIAlu>;
+def AND16I_G       : VC4_2_OP5_S32_ACC_G <0b00111, "and",       IIAlu>;
+def ROR16I_G       : VC4_2_OP5_S32_ACC_G <0b01001, "ror",       IIAlu>;
+def NOT16I_G       : VC4_2_OP5_S32_ACC_G <0b01000, "not",       IIAlu>;
+//let Defs = [SR] in {
+//  def CMP_G : VC4_2_OP5_S16_USE_G <0b01010, "cmp", IIAlu>;
+//  def CMP_F : VC4_2_OP5_S16_USE_F <0b01010, "cmp", IIAlu>; // Fast
+//}
+def RSUB16I_G      : VC4_2_OP5_S32_ACC_G <0b01011, "rsub",      IIAlu>;
+def BTEST16I_G     : VC4_2_OP5_S32_ACC_G <0b01100, "gtest",     IIAlu>;
+def OR16I_G        : VC4_2_OP5_S32_ACC_G <0b01101, "or",        IIAlu>;
+def MAX16I_G       : VC4_2_OP5_S32_ACC_G <0b01111, "max",       IIAlu>;
+def BITSET16I_G    : VC4_2_OP5_S32_ACC_G <0b10000, "bitset",    IIAlu>;
+def MIN16I_G       : VC4_2_OP5_S32_ACC_G <0b10001, "min",       IIAlu>;
+def ADDSCALE116I_G : VC4_2_OP5_S32_ACC_G <0b10011, "addscale1", IIAlu>;
+def ADDSCALE216I_G : VC4_2_OP5_S32_ACC_G <0b10101, "addscale2", IIAlu>;
+def ADDSCALE416I_G : VC4_2_OP5_S32_ACC_G <0b10111, "addscale4", IIAlu>;
+def NEG16I_G       : VC4_2_OP5_S32_ACC_G <0b11001, "neg",       IIAlu>;
+def MSB16I_G       : VC4_2_OP5_S32_ACC_G <0b11011, "msb",       IIAlu>;
+def BREV16I_G      : VC4_2_OP5_S32_ACC_G <0b11101, "brev",      IIAlu>;
+def ABS16I_G       : VC4_2_OP5_S32_ACC_G <0b11111, "abs",       IIAlu>;
 
+def MOV32I_G       : VC4_3_OP6_S48_G <0b000000, "mov",       IIAlu>;
+def CMN32I_G       : VC4_3_OP6_S48_G <0b000001, "cmn",       IIAlu>;
+def ADD32I_G       : VC4_3_OP6_S48_G <0b000010, "add",       IIAlu>;
+def BIC32I_G       : VC4_3_OP6_S48_G <0b000011, "bic",       IIAlu>;
+def MUL32I_G       : VC4_3_OP6_S48_G <0b000100, "mul",       IIAlu>;
+def EOR32I_G       : VC4_3_OP6_S48_G <0b000101, "eor",       IIAlu>;
+def SUB32I_G       : VC4_3_OP6_S48_G <0b000110, "sub",       IIAlu>;
+def AND32I_G       : VC4_3_OP6_S48_G <0b000111, "and",       IIAlu>;
+def ROR32I_G       : VC4_3_OP6_S48_G <0b001001, "ror",       IIAlu>;
+def NOT32I_G       : VC4_3_OP6_S48_G <0b001000, "not",       IIAlu>;
+//let Defs = [SR] in {
+//  def CMP_G : VC4_2_OP5_S16_USE_G <0b01010, "cmp", IIAlu>;
+//  def CMP_F : VC4_2_OP5_S16_USE_F <0b01010, "cmp", IIAlu>; // Fast
+//}
+def RSUB32I_G      : VC4_3_OP6_S48_G <0b001011, "rsub",      IIAlu>;
+def BTEST32I_G     : VC4_3_OP6_S48_G <0b001100, "gtest",     IIAlu>;
+def OR32I_G        : VC4_3_OP6_S48_G <0b001101, "or",        IIAlu>;
+def MAX32I_G       : VC4_3_OP6_S48_G <0b001111, "max",       IIAlu>;
+def BITSET32I_G    : VC4_3_OP6_S48_G <0b010000, "bitset",    IIAlu>;
+def MIN32I_G       : VC4_3_OP6_S48_G <0b010001, "min",       IIAlu>;
+def ADDSCALE132I_G : VC4_3_OP6_S48_G <0b010011, "addscale1", IIAlu>;
+def ADDSCALE232I_G : VC4_3_OP6_S48_G <0b010101, "addscale2", IIAlu>;
+def ADDSCALE432I_G : VC4_3_OP6_S48_G <0b010111, "addscale4", IIAlu>;
+def NEG32I_G       : VC4_3_OP6_S48_G <0b011001, "neg",       IIAlu>;
+def MSB32I_G       : VC4_3_OP6_S48_G <0b011011, "msb",       IIAlu>;
+def BREV32I_G      : VC4_3_OP6_S48_G <0b011101, "brev",      IIAlu>;
+def ABS32I_G       : VC4_3_OP6_S48_G <0b011111, "abs",       IIAlu>;
 
 def FADD_EQ  : VC4_3_OP4_S32_G <0b0000, 0b0000, "fadd.eq",  IIFpu>; // FIXME
 def FADD_NE  : VC4_3_OP4_S32_G <0b0000, 0b0001, "fadd.ne",  IIFpu>; // FIXME
