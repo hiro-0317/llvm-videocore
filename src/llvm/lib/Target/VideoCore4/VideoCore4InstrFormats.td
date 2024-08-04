@@ -75,11 +75,11 @@ class S16_OP4<bits<4>        opcode,
       VideoCore4Inst<outs, ins, asmstr, pattern, itin> {
   // I don't know the actual encoding for now
   bits<5> rd;
-  bits<5> ra;
+  bits<5> imm;
   let Size = 2;
 
   let Inst{4-0}   = rd;
-  let Inst{9-5}   = ra;
+  let Inst{9-5}   = imm;
   let Inst{10}    = 0;
   let Inst{14-11} = opcode;
   let Inst{15}    = 0;
