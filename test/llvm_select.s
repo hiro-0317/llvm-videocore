@@ -5,7 +5,7 @@
 	.type	test_movx_1,@function
 test_movx_1:                            # @test_movx_1
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	mov	%r1, 1                          # encoding: [0x00,0x00]
 	st	%r1, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r2, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
@@ -24,7 +24,7 @@ $func_end0:
 	.type	test_movx_2,@function
 test_movx_2:                            # @test_movx_2
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	mov	%r0, 1                          # encoding: [0x00,0x00]
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r1, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
@@ -81,7 +81,7 @@ $func_end3:
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	bl	test_movx_1                     # encoding: [0x00,0x00,0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -133,5 +133,5 @@ _MergedGlobals:
 	.globl	b
 .set b, _MergedGlobals+4
 	.size	b, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
 	.section	".note.GNU-stack","",@progbits

@@ -5,7 +5,7 @@
 	.type	frame_a2z,@function
 frame_a2z:                              # @frame_a2z
 # %bb.0:
-	sub	%sp, 104                        # encoding: [0x00,0x00]
+	sub	%sp, 104                        # encoding: [0x68,0x00,0xc0,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	st	%r0, 100 (sp)                   # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 100 (sp)                   # encoding: [0x00,0x00,0x00,0x00]
@@ -145,7 +145,7 @@ $func_end0:
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	bl	frame_a2z                       # encoding: [0x00,0x00,0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -170,5 +170,5 @@ dst:
 	.long	0                               # 0x0
 	.size	dst, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
 	.section	".note.GNU-stack","",@progbits

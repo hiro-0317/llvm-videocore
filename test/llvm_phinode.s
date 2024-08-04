@@ -45,7 +45,7 @@ main:                                   # @main
 # %bb.0:
 	lea	%r3, _MergedGlobals(%pc)        # encoding: []
                                         #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	ld	%r0, (%r3)                      # encoding: [0x00,0x00]
 	bl	llvm_phinode                    # encoding: [0x00,0x00,0x00,0x00]
 	mov	%r2, %r0                        # encoding: [0x00,0x00]
@@ -124,5 +124,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+96
 	.size	dst, 32
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
 	.section	".note.GNU-stack","",@progbits

@@ -5,7 +5,7 @@
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	sub	%sp, 1200                       # encoding: [0x00,0x00]
+	sub	%sp, 1200                       # encoding: [0xb0,0x04,0xc0,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	add	%r1, %sp, 400                   # encoding: []
 	add	%r2, %sp, 0                     # encoding: []
@@ -35,5 +35,5 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
 	.section	".note.GNU-stack","",@progbits

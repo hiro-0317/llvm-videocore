@@ -20,7 +20,7 @@ $func_end0:
 main:                                   # @main
 # %bb.0:
 	itof	%r0, %r0                        # encoding: [0x00,0x00,0x00,0x00]
-	sub	%sp, 4                          # encoding: [0x00,0x00]
+	sub	%sp, 4                          # encoding: [0x80,0x18]
 	fmul	%r0, %r0, %r0                   # encoding: [0x00,0x00,0x00,0x00]
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
@@ -31,5 +31,5 @@ main:                                   # @main
 $func_end1:
 	.size	main, ($func_end1)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 2f8c3f7f648a83d43d5f06935fbd4bdc1fb55d1e)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 6d1d67decb03e16ea1a27d67d5c5b5f1ea40c29d)"
 	.section	".note.GNU-stack","",@progbits
