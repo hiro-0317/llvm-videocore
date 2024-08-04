@@ -82,6 +82,13 @@ VideoCore4MCCodeEmitter::encodeInstruction(const MCInst             &MI,
     break;
   }
   case 6: {
+    for (int i = 0; i < Size; ++i) {
+      unsigned Shift = i * 8;
+      APInt    tmp   = Binary;
+      tmp.lshrInPlace(Shift);
+      tmp &= 0xff;
+      CB.push_back((char)(*tmp.getRawData()));
+    }
     break;
   }
   case 10: {
