@@ -8,7 +8,7 @@ _Z4testPff:                             # @_Z4testPff
 	fmul	%r1, %r1, %r1                   # encoding: [0x00,0x00,0x00,0x00]
 	st	%r1, (%r0)                      # encoding: [0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r0, %r1                        # encoding: [0x00,0x00]
+	mov	%r0, %r1                        # encoding: [0x00,0x40]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -20,16 +20,16 @@ $func_end0:
 main:                                   # @main
 # %bb.0:
 	itof	%r0, %r0                        # encoding: [0x00,0x00,0x00,0x00]
-	sub	%sp, 4                          # encoding: [0x80,0x18]
+	sub	%sp, 4                          # encoding: [0x04,0x00,0xc0,0xb0]
 	fmul	%r0, %r0, %r0                   # encoding: [0x00,0x00,0x00,0x00]
 	st	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	ld	%r0, 0 (sp)                     # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x80,0x08]
+	add	%sp, 4                          # encoding: [0x04,0x00,0x40,0xb0]
 	ftoi	%r0, %r0                        # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
 	.size	main, ($func_end1)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

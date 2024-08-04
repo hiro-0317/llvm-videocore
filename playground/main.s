@@ -5,7 +5,7 @@
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x80,0x18]
+	sub	%sp, 4                          # encoding: [0x04,0x00,0xc0,0xb0]
 	bl	add                             # encoding: [0x00,0x00,0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -16,7 +16,7 @@ main:                                   # @main
 	lea	%r1, x(%pc)                     # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5]
                                         #   fixup A - offset: 0, value: x, kind: fixup_VideoCore4_32
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x80,0x08]
+	add	%sp, 4                          # encoding: [0x04,0x00,0x40,0xb0]
 	st	%r0, (%r1)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -46,5 +46,5 @@ z:
 	.long	0                               # 0x0
 	.size	z, 4
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

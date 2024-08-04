@@ -11,16 +11,16 @@ main:                                   # @main
 	add	%r2, %sp, 0                     # encoding: [0x00,0x00,0x00,0x00,0x00,0x08]
 	add	%r3, %sp, 800                   # encoding: [0x20,0x03,0x00,0x00,0x00,0x08]
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
-	mov	%r4, %r0                        # encoding: [0x00,0x00]
-	add	%r4, %r1                        # encoding: [0x00,0x08]
-	mov	%r5, %r0                        # encoding: [0x00,0x00]
-	add	%r5, %r2                        # encoding: [0x00,0x08]
+	mov	%r4, %r0                        # encoding: [0x00,0x40]
+	add	%r4, %r1                        # encoding: [0x00,0x42]
+	mov	%r5, %r0                        # encoding: [0x00,0x40]
+	add	%r5, %r2                        # encoding: [0x00,0x42]
 	ld	%r4, (%r4)                      # encoding: [0x00,0x00]
 	ld	%r5, (%r5)                      # encoding: [0x00,0x00]
-	add	%r4, %r5                        # encoding: [0x00,0x08]
-	mov	%r5, %r0                        # encoding: [0x00,0x00]
-	add	%r5, %r3                        # encoding: [0x00,0x08]
-	add	%r0, 4                          # encoding: [0x80,0x08]
+	add	%r4, %r5                        # encoding: [0x00,0x42]
+	mov	%r5, %r0                        # encoding: [0x00,0x40]
+	add	%r5, %r3                        # encoding: [0x00,0x42]
+	add	%r0, 4                          # encoding: [0x40,0x62]
 	cmp	%r0, 400                        # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	st	%r4, (%r5)                      # encoding: [0x00,0x00]
@@ -35,5 +35,5 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

@@ -5,25 +5,25 @@
 	.type	gcd,@function
 gcd:                                    # @gcd
 # %bb.0:
-	cmp	%r0, %r1                        # encoding: [0x00,0x28]
+	cmp	%r0, %r1                        # encoding: [0x00,0x4a]
 	beq	BB0_3                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:                                # %.preheader
-	mov	%r2, %r0                        # encoding: [0x00,0x00]
+	mov	%r2, %r0                        # encoding: [0x00,0x40]
 	mov	%r3, 0                          # encoding: [0x00,0x00]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
-	mov	%r0, %r3                        # encoding: [0x00,0x00]
-	cmp	%r1, %r2                        # encoding: [0x00,0x28]
+	mov	%r0, %r3                        # encoding: [0x00,0x40]
+	cmp	%r1, %r2                        # encoding: [0x00,0x4a]
 	movlt	%r0, %r1                        # encoding: [0x00,0x00,0x00,0x00]
-	cmp	%r1, %r2                        # encoding: [0x00,0x28]
-	sub	%r0, %r2                        # encoding: [0x00,0x18]
+	cmp	%r1, %r2                        # encoding: [0x00,0x4a]
+	sub	%r0, %r2                        # encoding: [0x00,0x46]
 	movlt	%r2, %r3                        # encoding: [0x00,0x00,0x00,0x00]
-	sub	%r1, %r2                        # encoding: [0x00,0x18]
-	cmp	%r0, %r1                        # encoding: [0x00,0x28]
+	sub	%r1, %r2                        # encoding: [0x00,0x46]
+	cmp	%r0, %r1                        # encoding: [0x00,0x4a]
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r2, %r0                        # encoding: [0x00,0x00]
+	mov	%r2, %r0                        # encoding: [0x00,0x40]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
@@ -41,17 +41,17 @@ main:                                   # @main
 # %bb.0:
 	lea	%r2, _MergedGlobals(%pc)        # encoding: [0x00,0x00,0x00,0x00,0x00,0xe5]
                                         #   fixup A - offset: 0, value: _MergedGlobals, kind: fixup_VideoCore4_32
-	sub	%sp, 4                          # encoding: [0x80,0x18]
+	sub	%sp, 4                          # encoding: [0x04,0x00,0xc0,0xb0]
 	ld	%r0, (%r2)                      # encoding: [0x00,0x00]
 	bl	gcd                             # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r1, %r0                        # encoding: [0x00,0x00]
+	mov	%r1, %r0                        # encoding: [0x00,0x40]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x80,0x08]
+	add	%sp, 4                          # encoding: [0x04,0x00,0x40,0xb0]
 	st	%r0, (%r2)                      # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -75,5 +75,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+8
 	.size	dst, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

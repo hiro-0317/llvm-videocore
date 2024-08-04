@@ -13,14 +13,14 @@ _Z14recursive_facti:                    # @_Z14recursive_facti
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	add	%r2, %r0, -1                    # encoding: [0xff,0xff,0xff,0xff,0x00,0x08]
 	cmp	%r2, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
-	mul	%r1, %r0                        # encoding: [0x00,0x10]
+	mul	%r1, %r0                        # encoding: [0x00,0x44]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r0, %r2                        # encoding: [0x00,0x00]
+	mov	%r0, %r2                        # encoding: [0x00,0x40]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_2:
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r0, %r1                        # encoding: [0x00,0x00]
+	mov	%r0, %r1                        # encoding: [0x00,0x40]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end0:
@@ -42,9 +42,9 @@ main:                                   # @main
 BB1_1:                                  # =>This Inner Loop Header: Depth=1
 	add	%r3, %r2, -1                    # encoding: [0xff,0xff,0xff,0xff,0x00,0x08]
 	cmp	%r3, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
-	mul	%r0, %r2                        # encoding: [0x00,0x10]
+	mul	%r0, %r2                        # encoding: [0x00,0x44]
 	bne	BB1_1                           # encoding: [0x00,0x00,0x00,0x00]
-	mov	%r2, %r3                        # encoding: [0x00,0x00]
+	mov	%r2, %r3                        # encoding: [0x00,0x40]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB1_2:
@@ -69,5 +69,5 @@ _MergedGlobals:
 	.globl	dst
 .set dst, _MergedGlobals+4
 	.size	dst, 4
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

@@ -11,18 +11,18 @@ _sra:                                   # @_sra
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.1:                                # %.preheader
-	add	%r0, 8                          # encoding: [0x00,0x09]
+	add	%r0, 8                          # encoding: [0x80,0x62]
 BB0_2:                                  # =>This Inner Loop Header: Depth=1
 	add	%r2, %r0, -8                    # encoding: [0xf8,0xff,0xff,0xff,0x00,0x08]
 	add	%r3, %r0, -4                    # encoding: [0xfc,0xff,0xff,0xff,0x00,0x08]
 	ld	%r2, (%r2)                      # encoding: [0x00,0x00]
 	ld	%r3, (%r3)                      # encoding: [0x00,0x00]
 	asr	%r2, %r3                        # encoding: [0x00,0x00]
-	add	%r1, -1                         # encoding: [0xe0,0x0b]
+	add	%r1, -1                         # encoding: [0xf0,0x63]
 	st	%r2, (%r0)                      # encoding: [0x00,0x00]
 	cmp	%r1, 0                          # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_2                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, 12                         # encoding: [0x80,0x09]
+	add	%r0, 12                         # encoding: [0xc0,0x62]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 BB0_3:
@@ -38,7 +38,7 @@ $func_end0:
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	sub	%sp, 4                          # encoding: [0x80,0x18]
+	sub	%sp, 4                          # encoding: [0x04,0x00,0xc0,0xb0]
 	bl	_sra                            # encoding: [0x00,0x00,0x00,0x00]
 	st	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
@@ -48,7 +48,7 @@ main:                                   # @main
 	ld	%lr, 0 (%sp)                    # 4-byte Folded Spill
                                         # encoding: [0x00,0x00,0x00,0x00]
 	b	%lr                             # encoding: [0x00,0x00,0x00,0x00]
-	add	%sp, 4                          # encoding: [0x80,0x08]
+	add	%sp, 4                          # encoding: [0x04,0x00,0x40,0xb0]
 	mov	%r0, 0                          # encoding: [0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
 $func_end1:
@@ -142,5 +142,5 @@ p:
 	.long	4294967295                      # 0xffffffff
 	.size	p, 324
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

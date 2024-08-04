@@ -14,7 +14,7 @@ BB0_1:                                  # %load-store-loop
                                         # =>This Inner Loop Header: Depth=1
 	ldb	%r3, (%r0, %r1)                 # encoding: [0x00,0x00,0x00,0x00]
 	stb	%r3, (%r0, %r2)                 # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, 1                          # encoding: [0x20,0x08]
+	add	%r0, 1                          # encoding: [0x10,0x62]
 	cmp	%r0, 4096                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bult	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
 	nop                                     # encoding: [0x01,0x00]
@@ -43,5 +43,5 @@ dst:
 	.space	4096
 	.size	dst, 4096
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits

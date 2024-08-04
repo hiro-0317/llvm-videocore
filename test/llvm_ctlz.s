@@ -10,11 +10,11 @@ main:                                   # @main
                                         #   fixup A - offset: 0, value: dst, kind: fixup_VideoCore4_32
 BB0_1:                                  # =>This Inner Loop Header: Depth=1
 	clz	%r2, %r0                        # encoding: [0x00,0x00,0x00,0x00]
-	add	%r0, 1                          # encoding: [0x20,0x08]
+	add	%r0, 1                          # encoding: [0x10,0x62]
 	st	%r2, (%r1)                      # encoding: [0x00,0x00]
 	cmp	%r0, 4096                       # encoding: [0x00,0x00,0x00,0x00,0x00,0x00]
 	bne	BB0_1                           # encoding: [0x00,0x00,0x00,0x00]
-	add	%r1, 4                          # encoding: [0x80,0x08]
+	add	%r1, 4                          # encoding: [0x40,0x62]
 	nop                                     # encoding: [0x01,0x00]
 	nop                                     # encoding: [0x01,0x00]
 # %bb.2:
@@ -33,5 +33,5 @@ dst:
 	.space	16384
 	.size	dst, 16384
 
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 8026ba373f9a75bbf4a378c8edde4b9f9a7bbffc)"
+	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
 	.section	".note.GNU-stack","",@progbits
