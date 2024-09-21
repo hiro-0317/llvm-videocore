@@ -35,5 +35,5 @@ BB0_1:                                  # =>This Inner Loop Header: Depth=1
 $func_end0:
 	.size	main, ($func_end0)-main
                                         # -- End function
-	.ident	"clang version 18.1.8 (git@github.com:hiro-0317/llvm-videocore.git 239c171f99cd7dfa8e8cb8a18f830482d232b662)"
+	.ident	"clang version 19.1.0 (git@github.com:hiro-0317/llvm-videocore.git b93e207508a57a258a05a0ce6b7a6cf1703fc787)"
 	.section	".note.GNU-stack","",@progbits
