@@ -483,9 +483,10 @@ VideoCore4TargetLowering::LowerCCCArguments(SDValue                             
 						     dl,
 						     MVT::i32),
 				     Alignment,
-				     false,
-				     false,
-				     false,
+				     /*isVolatile=*/false,
+				     /*AlwaysInline=*/false,
+				     /*CI=*/nullptr,
+				     std::nullopt,
 				     MachinePointerInfo(),
 				     MachinePointerInfo()));
     } else {

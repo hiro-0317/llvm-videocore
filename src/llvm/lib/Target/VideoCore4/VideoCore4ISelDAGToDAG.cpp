@@ -42,13 +42,8 @@ namespace {
   class VideoCore4DAGToDAGISel : public SelectionDAGISel {
 
   public:
-  static char ID;
     VideoCore4DAGToDAGISel(VideoCore4TargetMachine &TM, CodeGenOptLevel OptLevel)
-      : SelectionDAGISel(ID, TM, OptLevel) {}
-    
-    virtual StringRef getPassName() const override {
-      return PASS_DESC;
-    }
+      : SelectionDAGISel(TM, OptLevel) {}
     
     /// getI16Imm - Return a target constant with the specified value, of type
     /// i16.
@@ -80,6 +75,14 @@ namespace {
   private:
     void Select(SDNode *N) override;
   };
+  class VideoCore4DAGToDAGISelLegacy : public SelectionDAGISelLegacy {
+  public:
+    static char ID;
+    explicit VideoCore4DAGToDAGISelLegacy(VideoCore4TargetMachine &tm,
+					  CodeGenOptLevel          OptLevel)
+      : SelectionDAGISelLegacy(ID,
+			       std::make_unique<VideoCore4DAGToDAGISel>(tm, OptLevel)) {}
+};
 }  // end anonymous namespace
 
 /// createVideoCore4ISelDag - This pass converts a legalized DAG into a
@@ -88,8 +91,8 @@ namespace {
 FunctionPass*
 llvm::createVideoCore4ISelDag(VideoCore4TargetMachine &TM,
 			      CodeGenOptLevel          OptLevel) {
-  return new VideoCore4DAGToDAGISel(TM,
-				    OptLevel);
+  return new VideoCore4DAGToDAGISelLegacy(TM,
+					  OptLevel);
 }
 
 void VideoCore4DAGToDAGISel::Select(SDNode *N) {
@@ -206,4 +209,4 @@ VideoCore4DAGToDAGISel::SelectStacked(SDValue  addr,
   return false;
 }
 
-char VideoCore4DAGToDAGISel::ID = 0;
+char VideoCore4DAGToDAGISelLegacy::ID = 0;

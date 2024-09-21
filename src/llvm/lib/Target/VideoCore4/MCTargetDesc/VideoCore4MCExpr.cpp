@@ -39,6 +39,23 @@ VideoCore4MCExpr::create(const MCSymbol                      *Symbol,
   return new (Ctx) VideoCore4MCExpr(Kind, MCSym);
 }
 
+bool
+VideoCore4MCExpr::evaluateAsRelocatableImpl(MCValue           &Res,
+					    const MCAssembler *Asm,
+					    const MCFixup     *Fixup) const {
+  // Explicitly drop the layout and assembler to prevent any symbolic folding in
+  // the expression handling.  This is required to preserve symbolic difference
+  // expressions to emit the paired relocations.
+  if (!getSubExpr()->evaluateAsRelocatable(Res, nullptr, nullptr))
+    return false;
+  Res = MCValue::get(Res.getSymA(),
+		     Res.getSymB(),
+		     Res.getConstant(),
+		     getKind());
+  // Custom fixup types are not valid with symbol difference expressions.
+  return Res.getSymB() ? getKind() == CEK_None : true;
+}
+
 const VideoCore4MCExpr*
 VideoCore4MCExpr::createGpOff(VideoCore4MCExpr::VideoCore4ExprKind Kind,
 	   	              const MCExpr                        *Expr,
@@ -67,24 +84,6 @@ VideoCore4MCExpr::printImpl(raw_ostream     &OS,
     Expr->print(OS, MAI, true);
   }
   OS << ')';
-}
-
-bool
-VideoCore4MCExpr::evaluateAsRelocatableImpl(MCValue           &Res,
-					    const MCAsmLayout *Layout,
-					    const MCFixup     *Fixup) const {
-  // Explicitly drop the layout and assembler to prevent any symbolic folding in
-  // the expression handling.  This is required to preserve symbolic difference
-  // expressions to emit the paired relocations.
-  if (!getSubExpr()->evaluateAsRelocatable(Res, nullptr, nullptr))
-    return false;
-
-  Res = MCValue::get(Res.getSymA(),
-		     Res.getSymB(),
-		     Res.getConstant(),
-		     getKind());
-  // Custom fixup types are not valid with symbol difference expressions.
-  return Res.getSymB() ? getKind() == CEK_None : true;
 }
 
 void VideoCore4MCExpr::visitUsedExpr(MCStreamer &Streamer) const {

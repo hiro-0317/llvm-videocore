@@ -174,7 +174,7 @@ void
 VideoCore4PassConfig::addIRPasses() {
   addPass(createVideoCore4BoolRetToIntPass());
   addPass(createIndirectBrExpandPass());
-  addPass(createAtomicExpandPass());
+  addPass(createAtomicExpandLegacyPass());
   addPass(createVideoCore4LowerIntrinsicsPass());
   addPass(createCFGSimplificationPass(SimplifyCFGOptions()
 				      .forwardSwitchCondToPhi(true)

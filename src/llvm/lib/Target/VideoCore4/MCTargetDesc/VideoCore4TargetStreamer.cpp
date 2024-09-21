@@ -43,13 +43,6 @@ VideoCore4TargetELFStreamer::VideoCore4TargetELFStreamer(MCStreamer            &
 							 const MCSubtargetInfo &STI)
   : VideoCore4TargetStreamer(S)
 {
-  MCAssembler &MCA = static_cast<MCELFStreamer&>(S).getAssembler();
-
-  unsigned EFlags = MCA.getELFHeaderEFlags();
-
-  EFlags = 0; //(EFlags & ~ELF::EF_ATK_ISA) | ELF::EF_ATK_ISA_V2;
-
-  MCA.setELFHeaderEFlags(EFlags);
 }
 
 MCELFStreamer&
@@ -108,6 +101,16 @@ namespace llvm {
 			      std::unique_ptr<MCObjectWriter> OW,
 			      std::unique_ptr<MCCodeEmitter>  Emitter,
 			      bool                            RelaxAll) {
+    VideoCore4ELFStreamer *S =
+      new VideoCore4ELFStreamer(Context,
+				std::move(MAB),
+				std::move(OW),
+				std::move(Emitter));
+
+    unsigned EFlags = ~ELF::EF_VIDEOCORE_ISA | ELF::EF_VIDEOCORE_ISA_V4;
+
+    S->getWriter().setELFHeaderEFlags(EFlags);
+
     return new VideoCore4ELFStreamer(Context, std::move(MAB), std::move(OW), std::move(Emitter));
   }
 }

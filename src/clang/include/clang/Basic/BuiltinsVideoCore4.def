@@ -11,10 +11,7 @@
 // this file must define the BUILTIN macro to make use of this information.
 //
 //===----------------------------------------------------------------------===//
-
 // The format of this database matches clang/Basic/Builtins.def.
-
 // In libgcc
 //BUILTIN(__builtin_vc_test, "vv*v*", "i")
-
 #undef BUILTIN
