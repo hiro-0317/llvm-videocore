@@ -133,5 +133,5 @@ _MergedGlobals:
 	.globl	b
 .set b, _MergedGlobals+4
 	.size	b, 4
-	.ident	"clang version 19.1.1 (git@github.com:hiro-0317/llvm-videocore.git 96b93a055ce8b1123cb636a954d8d6cdc9069b6c)"
+	.ident	"clang version 19.1.2 (git@github.com:hiro-0317/llvm-videocore.git a40909d18e63f0231e11989283ee7663915e36cf)"
 	.section	".note.GNU-stack","",@progbits
